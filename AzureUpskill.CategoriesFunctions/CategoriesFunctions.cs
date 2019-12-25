@@ -9,7 +9,6 @@ using Newtonsoft.Json;
 using AzureUpskill.Models;
 using System.Net;
 using AzureUpskill.Models.CreateCategory;
-using static AzureUpskill.Helpers.LogMessageHelper;
 
 namespace AzureUpskill.CategoriesFunctions
 {
@@ -17,22 +16,23 @@ namespace AzureUpskill.CategoriesFunctions
     {
         [FunctionName("Category")]
         public static async Task<IActionResult> CreateCategory(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req,
             [CosmosDB(
                 databaseName: "CvDatabase",
                 collectionName: "Categories",
-                ConnectionStringSetting = "CosmosDbConnection")] IAsyncCollector<Category> categories,
+                ConnectionStringSetting = "CosmosDbConnection",
+                CreateIfNotExists = true)] IAsyncCollector<Category> categories,
             ILogger log)
         {
             try
             {
-                log.LogInfo("START");
+                log.LogInformation("START");
 
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
                 CreateCategoryInput data = JsonConvert.DeserializeObject<CreateCategoryInput>(requestBody);
                 if (string.IsNullOrWhiteSpace(data?.Name))
                 {
-                    log.LogInfo($"No name for category provided");
+                    log.LogInformation($"No name for category provided");
                     return new BadRequestObjectResult("Input object in wrong format");
                 }
 
@@ -43,13 +43,13 @@ namespace AzureUpskill.CategoriesFunctions
 
                 await categories.AddAsync(newCategory);
 
-                log.LogInfo($"Creating category with name: {data.Name}");
+                log.LogInformation($"Creating category with name: {data.Name}");
 
                 return new AcceptedResult();
             }
             finally
             {
-                log.LogInfo("STOP");
+                log.LogInformation("STOP");
             }
         }
     }
