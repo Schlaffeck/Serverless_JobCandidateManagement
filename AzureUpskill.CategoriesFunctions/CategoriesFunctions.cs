@@ -52,5 +52,40 @@ namespace AzureUpskill.CategoriesFunctions
                 log.LogInformation("STOP");
             }
         }
+
+        [FunctionName("Category")]
+        public static async Task<IActionResult> DeleteCategory(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "Category/{categoryId}")] HttpRequest req,
+            [CosmosDB(
+                databaseName: "CvDatabase",
+                collectionName: "Categories",
+                PartitionKey = "{categoryId}",
+                Id = "{categoryId}",
+                ConnectionStringSetting = "CosmosDbConnection",
+                CreateIfNotExists = true)] Category category,
+            string categoryId,
+            ILogger log)
+        {
+            try
+            {
+                log.LogInformation("START");
+
+                if(category is null)
+                {
+                    log.LogInformation($"Document with key: {categoryId} was not found");
+                    return new NotFoundResult();
+                }
+
+                log.LogInformation($"Deleting category with key: {categoryId}");
+
+                // TODO: deletig from document db
+
+                return new OkObjectResult(categoryId);
+            }
+            finally
+            {
+                log.LogInformation("STOP");
+            }
+        }
     }
 }
