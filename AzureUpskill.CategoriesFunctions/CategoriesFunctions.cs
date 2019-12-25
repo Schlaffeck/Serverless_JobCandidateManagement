@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using AzureUpskill.Models;
 using System.Net;
 using AzureUpskill.Models.CreateCategory;
+using static AzureUpskill.Helpers.LogMessageHelper;
 
 namespace AzureUpskill.CategoriesFunctions
 {
@@ -26,13 +27,13 @@ namespace AzureUpskill.CategoriesFunctions
         {
             try
             {
-                log.LogInformation("START");
+                log.LogInfo("START");
 
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
                 CreateCategoryInput data = JsonConvert.DeserializeObject<CreateCategoryInput>(requestBody);
                 if (string.IsNullOrWhiteSpace(data?.Name))
                 {
-                    log.LogInformation($"No name for category provided");
+                    log.LogInfo($"No name for category provided");
                     return new BadRequestObjectResult("Input object in wrong format");
                 }
 
@@ -43,13 +44,13 @@ namespace AzureUpskill.CategoriesFunctions
 
                 await categories.AddAsync(newCategory);
 
-                log.LogInformation($"Creating category with name: {data.Name}");
+                log.LogInfo($"Creating category with name: {data.Name}");
 
                 return new AcceptedResult();
             }
             finally
             {
-                log.LogInformation("STOP");
+                log.LogInfo("STOP");
             }
         }
 
@@ -68,15 +69,15 @@ namespace AzureUpskill.CategoriesFunctions
         {
             try
             {
-                log.LogInformation("START");
+                log.LogInfo("START");
 
                 if(category is null)
                 {
-                    log.LogInformation($"Document with key: {categoryId} was not found");
+                    log.LogInfo($"Document with key: {categoryId} was not found");
                     return new NotFoundResult();
                 }
 
-                log.LogInformation($"Deleting category with key: {categoryId}");
+                log.LogInfo($"Deleting category with key: {categoryId}");
 
                 // TODO: deletig from document db
 
@@ -84,7 +85,7 @@ namespace AzureUpskill.CategoriesFunctions
             }
             finally
             {
-                log.LogInformation("STOP");
+                log.LogInfo("STOP");
             }
         }
     }

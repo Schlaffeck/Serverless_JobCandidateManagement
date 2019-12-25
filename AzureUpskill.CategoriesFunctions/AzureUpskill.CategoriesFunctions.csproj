@@ -9,6 +9,7 @@
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.28" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AzureUpskill.Helpers\AzureUpskill.Helpers.csproj" />
     <ProjectReference Include="..\AzureUpskill.Models\AzureUpskill.Models.csproj" />
   </ItemGroup>
   <ItemGroup>
