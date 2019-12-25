@@ -10,14 +10,18 @@ using AzureUpskill.Models;
 using System.Net;
 using AzureUpskill.Models.CreateCategory;
 using static AzureUpskill.Helpers.LogMessageHelper;
+using static AzureUpskill.Helpers.HttpHelper;
+using Microsoft.Azure.Documents.Client;
+using Microsoft.Azure.Documents;
+using System;
 
 namespace AzureUpskill.CategoriesFunctions
 {
     public static class CategoriesFunctions
     {
-        [FunctionName("Category")]
+        [FunctionName("CreateCategory")]
         public static async Task<IActionResult> CreateCategory(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "categories")] HttpRequest req,
             [CosmosDB(
                 databaseName: "CvDatabase",
                 collectionName: "Categories",
@@ -27,65 +31,84 @@ namespace AzureUpskill.CategoriesFunctions
         {
             try
             {
-                log.LogInfo("START");
+                log.LogInformationEx("START");
 
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
                 CreateCategoryInput data = JsonConvert.DeserializeObject<CreateCategoryInput>(requestBody);
                 if (string.IsNullOrWhiteSpace(data?.Name))
                 {
-                    log.LogInfo($"No name for category provided");
+                    log.LogInformationEx($"No name for category provided");
                     return new BadRequestObjectResult("Input object in wrong format");
                 }
 
+                var id = Guid.NewGuid().ToString(); 
                 var newCategory = new Category
                 {
+                    Id = id,
+                    CategoryId = id,
                     Name = data.Name
                 };
 
                 await categories.AddAsync(newCategory);
 
-                log.LogInfo($"Creating category with name: {data.Name}");
+                log.LogInformationEx($"Creating category with name: {data.Name}");
 
-                return new AcceptedResult();
+                return new OkObjectResult(newCategory);
             }
             finally
             {
-                log.LogInfo("STOP");
+                log.LogInformationEx("STOP");
             }
         }
 
-        [FunctionName("Category")]
+        [FunctionName("DeleteCategory")]
         public static async Task<IActionResult> DeleteCategory(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "Category/{categoryId}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "categories/{categoryId}")] HttpRequest req,
             [CosmosDB(
                 databaseName: "CvDatabase",
                 collectionName: "Categories",
                 PartitionKey = "{categoryId}",
                 Id = "{categoryId}",
-                ConnectionStringSetting = "CosmosDbConnection",
-                CreateIfNotExists = true)] Category category,
+                ConnectionStringSetting = "CosmosDbConnection")] Document category,
+             [CosmosDB(
+                databaseName: "CvDatabase",
+                collectionName: "Categories",
+                ConnectionStringSetting = "CosmosDbConnection")] DocumentClient documentClient,
             string categoryId,
             ILogger log)
         {
             try
             {
-                log.LogInfo("START");
+                log.LogInformationEx("START");
 
                 if(category is null)
                 {
-                    log.LogInfo($"Document with key: {categoryId} was not found");
+                    log.LogInformationEx($"Document with id: {categoryId} was not found");
                     return new NotFoundResult();
                 }
 
-                log.LogInfo($"Deleting category with key: {categoryId}");
+                log.LogInformationEx($"Deleting category with id: {categoryId}");
 
-                // TODO: deletig from document db
+                var result = await documentClient.DeleteDocumentAsync(
+                    category.SelfLink,
+                    new RequestOptions { PartitionKey = new PartitionKey(categoryId) });
 
-                return new OkObjectResult(categoryId);
+                if (result.StatusCode.IsSuccess())
+                {
+                    return new OkObjectResult(result.Resource ?? category);
+                }
+
+                return new StatusCodeResult((int)result.StatusCode);
+            }
+            catch(DocumentClientException dce)
+            {
+                var message = "Deleting category failed";
+                log.LogErrorEx(dce, message);
+                return new BadRequestObjectResult(new { Message = message, ErrorCode = dce.Error });
             }
             finally
             {
-                log.LogInfo("STOP");
+                log.LogInformationEx("STOP");
             }
         }
     }
