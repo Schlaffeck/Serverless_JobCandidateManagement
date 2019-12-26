@@ -7,13 +7,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using AzureUpskill.Models;
-using System.Net;
 using AzureUpskill.Models.CreateCategory;
 using static AzureUpskill.Helpers.LogMessageHelper;
 using static AzureUpskill.Helpers.HttpHelper;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents;
 using System;
+using AzureUpskill.Models.UpdateCategory;
 
 namespace AzureUpskill.CategoriesFunctions
 {
@@ -102,9 +102,100 @@ namespace AzureUpskill.CategoriesFunctions
             }
             catch(DocumentClientException dce)
             {
-                var message = "Deleting category failed";
+                var message = $"Deleting category failed ${dce.Message}";
                 log.LogErrorEx(dce, message);
                 return new BadRequestObjectResult(new { Message = message, ErrorCode = dce.Error });
+            }
+            finally
+            {
+                log.LogInformationEx("STOP");
+            }
+        }
+
+        [FunctionName("UpdateCategory")]
+        public static async Task<IActionResult> UpdateCategory(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "put", "patch", Route = "categories/{categoryId}")] HttpRequest req,
+            [CosmosDB(
+                databaseName: "CvDatabase",
+                collectionName: "Categories",
+                PartitionKey = "{categoryId}",
+                Id = "{categoryId}",
+                ConnectionStringSetting = "CosmosDbConnection")] Document category,
+             [CosmosDB(
+                databaseName: "CvDatabase",
+                collectionName: "Categories",
+                ConnectionStringSetting = "CosmosDbConnection")] DocumentClient documentClient,
+            string categoryId,
+            ILogger log)
+        {
+            try
+            {
+                log.LogInformationEx("START");
+
+                if (category is null)
+                {
+                    log.LogInformationEx($"Document with id: {categoryId} was not found");
+                    return new NotFoundResult();
+                }
+
+                string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+                UpdateCategoryInput data = JsonConvert.DeserializeObject<UpdateCategoryInput>(requestBody);
+                if (data is null)
+                {
+                    log.LogWarning($"Wrong format of request body: {requestBody}");
+                    return new BadRequestObjectResult("Input object in wrong format");
+                }
+
+                log.LogInformationEx($"Updating category with id: {categoryId}");
+
+                category.SetPropertyValue(nameof(Category.Name), data.Name);
+                var result = await documentClient.UpsertDocumentAsync(
+                    category.SelfLink, 
+                    category,
+                    new RequestOptions { PartitionKey = new PartitionKey(categoryId) });
+
+                if (result.StatusCode.IsSuccess())
+                {
+                    return new OkObjectResult(result.Resource ?? category);
+                }
+
+                return new StatusCodeResult((int)result.StatusCode);
+            }
+            catch (DocumentClientException dce)
+            {
+                var message = $"Category update failed: {dce.Message}";
+                log.LogErrorEx(dce, message);
+                return new BadRequestObjectResult(new { Message = message, ErrorCode = dce.Error });
+            }
+            finally
+            {
+                log.LogInformationEx("STOP");
+            }
+        }
+
+        [FunctionName("GetCategory")]
+        public static async Task<IActionResult> GetCategory(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "categories/{categoryId}")] HttpRequest req,
+            [CosmosDB(
+                databaseName: "CvDatabase",
+                collectionName: "Categories",
+                PartitionKey = "{categoryId}",
+                Id = "{categoryId}",
+                ConnectionStringSetting = "CosmosDbConnection")] Category category,
+            string categoryId,
+            ILogger log)
+        {
+            try
+            {
+                log.LogInformationEx("START");
+
+                if (category is null)
+                {
+                    log.LogInformationEx($"Document with id: {categoryId} was not found");
+                    return new NotFoundResult();
+                }
+
+                return new OkObjectResult(category);
             }
             finally
             {
