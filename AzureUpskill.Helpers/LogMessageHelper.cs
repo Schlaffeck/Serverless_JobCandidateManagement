@@ -10,6 +10,10 @@ namespace AzureUpskill.Helpers
         {
             log.LogInformation($"{caller}:\t{message}");
         }
+        public static void LogWarningEx(this ILogger log, string message, [CallerMemberName] string caller = null)
+        {
+            log.LogWarning($"{caller}:\t{message}");
+        }
 
         public static void LogErrorEx(this ILogger log, Exception ex, string message, [CallerMemberName] string caller = null)
         {

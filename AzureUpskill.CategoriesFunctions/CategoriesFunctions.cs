@@ -14,6 +14,7 @@ using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents;
 using System;
 using AzureUpskill.Models.UpdateCategory;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace AzureUpskill.CategoriesFunctions
 {
@@ -87,6 +88,13 @@ namespace AzureUpskill.CategoriesFunctions
                     return new NotFoundResult();
                 }
 
+                if(category.GetPropertyValue<int>(nameof(Category.NumberOfCandidates)) > 0)
+                {
+                    var message = $"Can not delete category with candidates assigned to it";
+                    log.LogWarningEx(message);
+                    return new NotFoundResult();
+                }
+
                 log.LogInformationEx($"Deleting category with id: {categoryId}");
 
                 var result = await documentClient.DeleteDocumentAsync(
@@ -142,7 +150,7 @@ namespace AzureUpskill.CategoriesFunctions
                 UpdateCategoryInput data = JsonConvert.DeserializeObject<UpdateCategoryInput>(requestBody);
                 if (data is null)
                 {
-                    log.LogWarning($"Wrong format of request body: {requestBody}");
+                    log.LogWarningEx($"Wrong format of request body: {requestBody}");
                     return new BadRequestObjectResult("Input object in wrong format");
                 }
 

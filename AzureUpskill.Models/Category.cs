@@ -12,5 +12,7 @@ namespace AzureUpskill.Models
         public string CategoryId { get; set; }
 
         public string Type { get; set; } = nameof(Category);
+
+        public int NumberOfCandidates { get; set; }
     }
 }
