@@ -14,7 +14,9 @@ using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents;
 using System;
 using AzureUpskill.Models.UpdateCategory;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+using AzureUpskill.Models.CreateCategory.Validation;
+using AzureUpskill.CategoriesFunctions.Validation;
+using AzureUpskill.Models.UpdateCategory.Validation;
 
 namespace AzureUpskill.CategoriesFunctions
 {
@@ -34,12 +36,10 @@ namespace AzureUpskill.CategoriesFunctions
             {
                 log.LogInformationEx("START");
 
-                string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-                CreateCategoryInput data = JsonConvert.DeserializeObject<CreateCategoryInput>(requestBody);
-                if (string.IsNullOrWhiteSpace(data?.Name))
+                var validated = await req.GetJsonBodyValidatedAsync<CreateCategoryInput, CreateCategoryInputValidator>();
+                if(!validated.IsValid)
                 {
-                    log.LogInformationEx($"No name for category provided");
-                    return new BadRequestObjectResult("Input object in wrong format");
+                    return validated.ToBadRequest();
                 }
 
                 var id = Guid.NewGuid().ToString(); 
@@ -47,12 +47,12 @@ namespace AzureUpskill.CategoriesFunctions
                 {
                     Id = id,
                     CategoryId = id,
-                    Name = data.Name
+                    Name = validated.Body.Name
                 };
 
                 await categories.AddAsync(newCategory);
 
-                log.LogInformationEx($"Creating category with name: {data.Name}");
+                log.LogInformationEx($"Creating category with name: {validated.Body.Name}");
 
                 return new OkObjectResult(newCategory);
             }
@@ -146,17 +146,15 @@ namespace AzureUpskill.CategoriesFunctions
                     return new NotFoundResult();
                 }
 
-                string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-                UpdateCategoryInput data = JsonConvert.DeserializeObject<UpdateCategoryInput>(requestBody);
-                if (data is null)
+                var validated = await req.GetJsonBodyValidatedAsync<UpdateCategoryInput, UpdateCategoryInputValidator>();
+                if (!validated.IsValid)
                 {
-                    log.LogWarningEx($"Wrong format of request body: {requestBody}");
-                    return new BadRequestObjectResult("Input object in wrong format");
+                    return validated.ToBadRequest();
                 }
 
                 log.LogInformationEx($"Updating category with id: {categoryId}");
 
-                category.SetPropertyValue(nameof(Category.Name), data.Name);
+                category.SetPropertyValue(nameof(Category.Name), validated.Body.Name);
                 var result = await documentClient.UpsertDocumentAsync(
                     category.SelfLink, 
                     category,
