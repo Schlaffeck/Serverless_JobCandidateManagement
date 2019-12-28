@@ -17,6 +17,8 @@ using AzureUpskill.Models.UpdateCategory;
 using AzureUpskill.Models.CreateCategory.Validation;
 using AzureUpskill.CategoriesFunctions.Validation;
 using AzureUpskill.Models.UpdateCategory.Validation;
+using AzureUpskill.Models.DeleteCategory.Validation;
+using AzureUpskill.Helpers;
 
 namespace AzureUpskill.CategoriesFunctions
 {
@@ -70,7 +72,7 @@ namespace AzureUpskill.CategoriesFunctions
                 collectionName: "Categories",
                 PartitionKey = "{categoryId}",
                 Id = "{categoryId}",
-                ConnectionStringSetting = "CosmosDbConnection")] Document category,
+                ConnectionStringSetting = "CosmosDbConnection")] CategoryDocument categoryDocument,
              [CosmosDB(
                 databaseName: "CvDatabase",
                 collectionName: "Categories",
@@ -82,28 +84,29 @@ namespace AzureUpskill.CategoriesFunctions
             {
                 log.LogInformationEx("START");
 
-                if(category is null)
+                if(categoryDocument is null)
                 {
                     log.LogInformationEx($"Document with id: {categoryId} was not found");
                     return new NotFoundResult();
                 }
 
-                if(category.GetPropertyValue<int>(nameof(Category.NumberOfCandidates)) > 0)
+                var validationResult = categoryDocument.Validate<Category, CanDeleteCategoryValidator>();
+                if (!validationResult.IsValid)
                 {
-                    var message = $"Can not delete category with candidates assigned to it";
+                    var message = $"Can not delete category: {validationResult.ToErrorString()}";
                     log.LogWarningEx(message);
-                    return new NotFoundResult();
+                    return validationResult.ToBadRequest();
                 }
 
                 log.LogInformationEx($"Deleting category with id: {categoryId}");
 
                 var result = await documentClient.DeleteDocumentAsync(
-                    category.SelfLink,
+                    categoryDocument.SelfLink,
                     new RequestOptions { PartitionKey = new PartitionKey(categoryId) });
 
                 if (result.StatusCode.IsSuccess())
                 {
-                    return new OkObjectResult(result.Resource ?? category);
+                    return new OkObjectResult(categoryDocument);
                 }
 
                 return new StatusCodeResult((int)result.StatusCode);

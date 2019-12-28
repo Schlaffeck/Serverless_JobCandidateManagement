@@ -34,5 +34,10 @@ namespace AzureUpskill.Core
         {
             errorsList.AddRange(validationErrors);
         }
+
+        public string ToErrorString()
+        {
+            return string.Join("\r\n", this.Errors.Select(e => e.ToString()));
+        }
     }
 }
