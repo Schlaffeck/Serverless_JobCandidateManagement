@@ -7,7 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureUpskill.CategoriesFunc
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureUpskill.Models", "..\AzureUpskill.Models\AzureUpskill.Models.csproj", "{9F3A517C-FE88-4071-9271-5DB1639ABFC7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureUpskill.Helpers", "..\AzureUpskill.Helpers\AzureUpskill.Helpers.csproj", "{64649A17-200A-4ACA-A5A9-D7F515CAE1AA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureUpskill.Helpers", "..\AzureUpskill.Helpers\AzureUpskill.Helpers.csproj", "{64649A17-200A-4ACA-A5A9-D7F515CAE1AA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureUpskill.Core", "..\AzureUpskill.Core\AzureUpskill.Core.csproj", "{A4186114-05C7-424E-B872-9C2DA38D4583}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{64649A17-200A-4ACA-A5A9-D7F515CAE1AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{64649A17-200A-4ACA-A5A9-D7F515CAE1AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{64649A17-200A-4ACA-A5A9-D7F515CAE1AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A4186114-05C7-424E-B872-9C2DA38D4583}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A4186114-05C7-424E-B872-9C2DA38D4583}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A4186114-05C7-424E-B872-9C2DA38D4583}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A4186114-05C7-424E-B872-9C2DA38D4583}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

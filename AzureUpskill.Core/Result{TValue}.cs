@@ -2,24 +2,29 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace AzureUpskill.Helpers.Validation
+namespace AzureUpskill.Core
 {
-    public class ValidatedHttpRequest<TBody>
+    public class Result<TValue>
     {
         private List<ValidationFailure> errorsList = new List<ValidationFailure>();
 
-        public ValidatedHttpRequest(TBody body)
-            : this(body, Enumerable.Empty<ValidationFailure>())
+        public Result()
+            : this(default(TValue))
         {
         }
 
-        public ValidatedHttpRequest(TBody body, IEnumerable<ValidationFailure> validationFailures)
+        public Result(TValue value)
+            : this(value, Enumerable.Empty<ValidationFailure>())
         {
-            Body = body;
+        }
+
+        public Result(TValue value, IEnumerable<ValidationFailure> validationFailures)
+        {
+            Body = value;
             errorsList.AddRange(validationFailures);
         }
 
-        public TBody Body { get; set; }
+        public TValue Body { get; set; }
 
         public IEnumerable<ValidationFailure> Errors => errorsList;
 

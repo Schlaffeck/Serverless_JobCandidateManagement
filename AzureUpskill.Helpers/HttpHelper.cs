@@ -1,4 +1,4 @@
-﻿using AzureUpskill.Helpers.Validation;
+﻿using AzureUpskill.Core;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
@@ -25,7 +25,7 @@ namespace AzureUpskill.Helpers
         /// </typeparam>
         /// <param name="request"></param>
         /// <returns></returns>
-        public static async Task<ValidatedHttpRequest<T>> GetJsonBodyValidatedAsync<T, V>(this HttpRequest request)
+        public static async Task<Result<T>> GetJsonBodyValidatedAsync<T, V>(this HttpRequest request)
             where V : AbstractValidator<T>, new()
         {
             var requestObject = await request.GetJsonBodyAsync<T>();
@@ -34,10 +34,10 @@ namespace AzureUpskill.Helpers
 
             if (!validationResult.IsValid)
             {
-                return new ValidatedHttpRequest<T>(requestObject, validationResult.Errors);
+                return new Result<T>(requestObject, validationResult.Errors);
             }
 
-            return new ValidatedHttpRequest<T>(requestObject);
+            return new Result<T>(requestObject);
         }
 
         /// <summary>

@@ -11,6 +11,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AzureUpskill.Core\AzureUpskill.Core.csproj" />
     <ProjectReference Include="..\AzureUpskill.Helpers\AzureUpskill.Helpers.csproj" />
     <ProjectReference Include="..\AzureUpskill.Models\AzureUpskill.Models.csproj" />
   </ItemGroup>
