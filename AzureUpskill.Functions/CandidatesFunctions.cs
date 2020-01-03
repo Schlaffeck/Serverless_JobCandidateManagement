@@ -31,16 +31,22 @@ namespace AzureUpskill.Functions
         public async Task<IActionResult> CreateCandidate(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "categories/{categoryId}/candidates")] HttpRequest req,
             [CosmosDB(
-                databaseName: "CvDatabase",
-                collectionName: "Candidates",
-                ConnectionStringSetting = "CosmosDbConnection",
+                databaseName: Consts.DbName,
+                collectionName: Consts.CandidatesContainerName,
+                ConnectionStringSetting = Consts.CosmosDbConnectionStringName,
                 CreateIfNotExists = true)] IAsyncCollector<Candidate> candidates,
             [CosmosDB(
-                databaseName: "CvDatabase",
-                collectionName: "Categories",
+                databaseName: Consts.DbName,
+                collectionName: Consts.CategoriesContainerName,
                 PartitionKey = "{categoryId}",
                 Id = "{categoryId}",
-                ConnectionStringSetting = "CosmosDbConnection")] Category category, 
+                ConnectionStringSetting = Consts.CosmosDbConnectionStringName)] Category category,
+            [CosmosDB(
+                databaseName: Consts.DbName,
+                collectionName: Consts.CategoriesContainerName,
+                PartitionKey = "{categoryId}",
+                ConnectionStringSetting = Consts.CosmosDbConnectionStringName)] DocumentClient categoriesDocumentClient,
+            string categoryId,
             ILogger log)
         {
             log.LogInformationEx("START");
@@ -64,7 +70,7 @@ namespace AzureUpskill.Functions
                 this.mapper.Map(category, candidate);
 
                 await candidates.AddAsync(candidate);
-                // TODO: run stored procedure to update category candidates count
+                await RunChangeCandidateCountStoredProcedureAsync(categoriesDocumentClient, categoryId, 1);
 
                 log.LogInformationEx($"Candidate {candidate.Id} added to category: {candidate.CategoryId}");
                 return new OkObjectResult(candidate);
@@ -81,16 +87,21 @@ namespace AzureUpskill.Functions
         public async Task<IActionResult> DeleteCandidate(
             [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "categories/{categoryId}/candidates/{candidateId}")] HttpRequest req,
             [CosmosDB(
-                databaseName: "CvDatabase",
-                collectionName: "Candidates",
+                databaseName: Consts.DbName,
+                collectionName: Consts.CandidatesContainerName,
                 PartitionKey = "{categoryId}",
                 Id = "{candidateId}",
-                ConnectionStringSetting = "CosmosDbConnection")] Document candidateDocument,
+                ConnectionStringSetting = Consts.CosmosDbConnectionStringName)] Document candidateDocument,
             [CosmosDB(
-                databaseName: "CvDatabase",
-                collectionName: "Candidates",
+                databaseName: Consts.DbName,
+                collectionName: Consts.CandidatesContainerName,
                 PartitionKey = "{categoryId}",
-                ConnectionStringSetting = "CosmosDbConnection")] DocumentClient documentClient,
+                ConnectionStringSetting = Consts.CosmosDbConnectionStringName)] DocumentClient documentClient,
+            [CosmosDB(
+                databaseName: Consts.DbName,
+                collectionName: Consts.CategoriesContainerName,
+                PartitionKey = "{categoryId}",
+                ConnectionStringSetting = Consts.CosmosDbConnectionStringName)] DocumentClient categoriesDocumentClient,
             string categoryId,
             ILogger log)
         {
@@ -108,12 +119,13 @@ namespace AzureUpskill.Functions
                 {
                     PartitionKey = new PartitionKey(categoryId)
                 });
-                // TODO: run stored procedure to update category candidates count
-
-                log.LogInformationEx($"Candidate {candidateDocument.Id} deleted from category: {categoryId}");
 
                 if (result.StatusCode.IsSuccess())
                 {
+
+                    log.LogInformationEx($"Candidate {candidateDocument.Id} deleted from category: {categoryId}");
+
+                    await RunChangeCandidateCountStoredProcedureAsync(categoriesDocumentClient, categoryId, -1);
                     return new OkObjectResult(candidateDocument);
                 }
 
@@ -135,15 +147,15 @@ namespace AzureUpskill.Functions
         public async Task<IActionResult> UpdateCandidate(
             [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "categories/{categoryId}/candidates/{candidateId}")] HttpRequest req,
             [CosmosDB(
-                databaseName: "CvDatabase",
-                collectionName: "Candidates",
+                databaseName: Consts.DbName,
+                collectionName: Consts.CandidatesContainerName,
                 PartitionKey = "{categoryId}",
                 Id = "{candidateId}",
-                ConnectionStringSetting = "CosmosDbConnection")] CandidateDocument candidateDocument,
+                ConnectionStringSetting = Consts.CosmosDbConnectionStringName)] CandidateDocument candidateDocument,
              [CosmosDB(
-                databaseName: "CvDatabase",
-                collectionName: "Candidates",
-                ConnectionStringSetting = "CosmosDbConnection")] DocumentClient documentClient,
+                databaseName: Consts.DbName,
+                collectionName: Consts.CandidatesContainerName,
+                ConnectionStringSetting = Consts.CosmosDbConnectionStringName)] DocumentClient documentClient,
             string candidateId,
             ILogger log)
         {
@@ -174,6 +186,7 @@ namespace AzureUpskill.Functions
 
                 if (result.StatusCode.IsSuccess())
                 {
+                    // TODO: if candidate category changes - run SP to swap categories count (modify SP)
                     return new OkObjectResult(candidate);
                 }
 
@@ -195,11 +208,11 @@ namespace AzureUpskill.Functions
         public static async Task<IActionResult> GetCandidate(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "categories/{categoryId}/candidates/{candidateId}")] HttpRequest req,
             [CosmosDB(
-                databaseName: "CvDatabase",
-                collectionName: "Candidates",
+                databaseName: Consts.DbName,
+                collectionName: Consts.CandidatesContainerName,
                 PartitionKey = "{categoryId}",
                 Id = "{candidateId}",
-                ConnectionStringSetting = "CosmosDbConnection")] Candidate candidate,
+                ConnectionStringSetting = Consts.CosmosDbConnectionStringName)] Candidate candidate,
             string candidateId,
             ILogger log)
         {
@@ -219,6 +232,13 @@ namespace AzureUpskill.Functions
             {
                 log.LogInformationEx("STOP");
             }
+        }
+
+        private static async Task RunChangeCandidateCountStoredProcedureAsync(DocumentClient categoriesClient, string categoryId, int changeCountValue)
+        {
+            var spUri = UriFactory.CreateStoredProcedureUri(Consts.DbName, Consts.CategoriesContainerName,
+                "changeCandidateCount");
+            await categoriesClient.ExecuteStoredProcedureAsync<dynamic>(spUri, new RequestOptions { PartitionKey = new PartitionKey(categoryId)}, new { categoryId, changeCountValue });
         }
     }
 }

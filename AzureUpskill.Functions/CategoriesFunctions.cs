@@ -26,11 +26,11 @@ namespace AzureUpskill.Functions
     {
         [FunctionName("CreateCategory")]
         public static async Task<IActionResult> CreateCategory(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "categories")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = Consts.CategoriesContainerName)] HttpRequest req,
             [CosmosDB(
-                databaseName: "CvDatabase",
-                collectionName: "Categories",
-                ConnectionStringSetting = "CosmosDbConnection",
+                databaseName: Consts.DbName,
+                collectionName: Consts.CategoriesContainerName,
+                ConnectionStringSetting = Consts.CosmosDbConnectionStringName,
                 CreateIfNotExists = true)] IAsyncCollector<Category> categories,
             ILogger log)
         {
@@ -68,15 +68,15 @@ namespace AzureUpskill.Functions
         public static async Task<IActionResult> DeleteCategory(
             [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "categories/{categoryId}")] HttpRequest req,
             [CosmosDB(
-                databaseName: "CvDatabase",
-                collectionName: "Categories",
+                databaseName: Consts.DbName,
+                collectionName: Consts.CategoriesContainerName,
                 PartitionKey = "{categoryId}",
                 Id = "{categoryId}",
-                ConnectionStringSetting = "CosmosDbConnection")] CategoryDocument categoryDocument,
+                ConnectionStringSetting = Consts.CosmosDbConnectionStringName)] CategoryDocument categoryDocument,
              [CosmosDB(
-                databaseName: "CvDatabase",
-                collectionName: "Categories",
-                ConnectionStringSetting = "CosmosDbConnection")] DocumentClient documentClient,
+                databaseName: Consts.DbName,
+                collectionName: Consts.CategoriesContainerName,
+                ConnectionStringSetting = Consts.CosmosDbConnectionStringName)] DocumentClient documentClient,
             string categoryId,
             ILogger log)
         {
@@ -127,15 +127,15 @@ namespace AzureUpskill.Functions
         public static async Task<IActionResult> UpdateCategory(
             [HttpTrigger(AuthorizationLevel.Anonymous, "put", "patch", Route = "categories/{categoryId}")] HttpRequest req,
             [CosmosDB(
-                databaseName: "CvDatabase",
-                collectionName: "Categories",
+                databaseName: Consts.DbName,
+                collectionName: Consts.CategoriesContainerName,
                 PartitionKey = "{categoryId}",
                 Id = "{categoryId}",
-                ConnectionStringSetting = "CosmosDbConnection")] Document category,
+                ConnectionStringSetting = Consts.CosmosDbConnectionStringName)] Document category,
              [CosmosDB(
-                databaseName: "CvDatabase",
-                collectionName: "Categories",
-                ConnectionStringSetting = "CosmosDbConnection")] DocumentClient documentClient,
+                databaseName: Consts.DbName,
+                collectionName: Consts.CategoriesContainerName,
+                ConnectionStringSetting = Consts.CosmosDbConnectionStringName)] DocumentClient documentClient,
             string categoryId,
             ILogger log)
         {
@@ -186,11 +186,11 @@ namespace AzureUpskill.Functions
         public static async Task<IActionResult> GetCategory(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "categories/{categoryId}")] HttpRequest req,
             [CosmosDB(
-                databaseName: "CvDatabase",
-                collectionName: "Categories",
+                databaseName: Consts.DbName,
+                collectionName: Consts.CategoriesContainerName,
                 PartitionKey = "{categoryId}",
                 Id = "{categoryId}",
-                ConnectionStringSetting = "CosmosDbConnection")] Category category,
+                ConnectionStringSetting = Consts.CosmosDbConnectionStringName)] Category category,
             string categoryId,
             ILogger log)
         {
