@@ -20,11 +20,11 @@ namespace AzureUpskill.Core
 
         public Result(TValue value, IEnumerable<ValidationFailure> validationFailures)
         {
-            Body = value;
+            Value = value;
             errorsList.AddRange(validationFailures);
         }
 
-        public TValue Body { get; set; }
+        public TValue Value { get; set; }
 
         public IEnumerable<ValidationFailure> Errors => errorsList;
 

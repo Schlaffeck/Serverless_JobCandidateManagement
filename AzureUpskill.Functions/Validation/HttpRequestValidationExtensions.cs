@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 
-namespace AzureUpskill.CategoriesFunctions.Validation
+namespace AzureUpskill.Functions.Validation
 {
     public static class HttpRequestValidationExtensions
     {

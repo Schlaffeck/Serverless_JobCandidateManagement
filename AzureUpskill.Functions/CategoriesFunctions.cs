@@ -15,12 +15,12 @@ using Microsoft.Azure.Documents;
 using System;
 using AzureUpskill.Models.UpdateCategory;
 using AzureUpskill.Models.CreateCategory.Validation;
-using AzureUpskill.CategoriesFunctions.Validation;
+using AzureUpskill.Functions.Validation;
 using AzureUpskill.Models.UpdateCategory.Validation;
 using AzureUpskill.Models.DeleteCategory.Validation;
 using AzureUpskill.Helpers;
 
-namespace AzureUpskill.CategoriesFunctions
+namespace AzureUpskill.Functions
 {
     public static class CategoriesFunctions
     {
@@ -49,12 +49,12 @@ namespace AzureUpskill.CategoriesFunctions
                 {
                     Id = id,
                     CategoryId = id,
-                    Name = validated.Body.Name
+                    Name = validated.Value.Name
                 };
 
                 await categories.AddAsync(newCategory);
 
-                log.LogInformationEx($"Creating category with name: {validated.Body.Name}");
+                log.LogInformationEx($"Creating category with name: {validated.Value.Name}");
 
                 return new OkObjectResult(newCategory);
             }
@@ -157,7 +157,7 @@ namespace AzureUpskill.CategoriesFunctions
 
                 log.LogInformationEx($"Updating category with id: {categoryId}");
 
-                category.SetPropertyValue(nameof(Category.Name), validated.Body.Name);
+                category.SetPropertyValue(nameof(Category.Name), validated.Value.Name);
                 var result = await documentClient.UpsertDocumentAsync(
                     category.SelfLink, 
                     category,

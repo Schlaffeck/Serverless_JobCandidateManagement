@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29418.71
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureUpskill.CategoriesFunctions", "AzureUpskill.CategoriesFunctions.csproj", "{F7699439-8AB4-426F-8C28-9ABE96931828}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureUpskill.Functions", "AzureUpskill.Functions.csproj", "{F7699439-8AB4-426F-8C28-9ABE96931828}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureUpskill.Models", "..\AzureUpskill.Models\AzureUpskill.Models.csproj", "{9F3A517C-FE88-4071-9271-5DB1639ABFC7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureUpskill.Helpers", "..\AzureUpskill.Helpers\AzureUpskill.Helpers.csproj", "{64649A17-200A-4ACA-A5A9-D7F515CAE1AA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureUpskill.Core", "..\AzureUpskill.Core\AzureUpskill.Core.csproj", "{A4186114-05C7-424E-B872-9C2DA38D4583}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureUpskill.Core", "..\AzureUpskill.Core\AzureUpskill.Core.csproj", "{A4186114-05C7-424E-B872-9C2DA38D4583}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
