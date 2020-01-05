@@ -1,9 +1,9 @@
-﻿using AzureUpskill.Models.CreateCategory;
+﻿using AzureUpskill.Core.Validation;
 using FluentValidation;
 
 namespace AzureUpskill.Models.CreateCategory.Validation
 {
-    public class CreateCategoryInputValidator : AbstractValidator<CreateCategoryInput>
+    public class CreateCategoryInputValidator : AbstractModelValidator<CreateCategoryInput>
     {
         public CreateCategoryInputValidator()
         {

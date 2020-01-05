@@ -15,6 +15,7 @@ using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents;
 using AzureUpskill.Models.UpdateCandidate;
 using AzureUpskill.Models.UpdateCandidate.Validation;
+using AzureUpskill.Functions.CosmosDb;
 
 namespace AzureUpskill.Functions
 {
@@ -29,7 +30,7 @@ namespace AzureUpskill.Functions
 
         [FunctionName("CreateCandidate")]
         public async Task<IActionResult> CreateCandidate(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "categories/{categoryId}/candidates")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "categories/{categoryId}/candidates")] CreateCandidateInput req,
             [CosmosDB(
                 databaseName: Consts.DbName,
                 collectionName: Consts.CandidatesContainerName,
@@ -49,39 +50,29 @@ namespace AzureUpskill.Functions
             string categoryId,
             ILogger log)
         {
-            log.LogInformationEx("START");
-            try
+            if (category is null)
             {
-                if (category is null)
-                {
-                    var msg = $"Category for candidate not found by id: {req.Path}";
-                    log.LogWarningEx(msg);
-                    return new NotFoundResult();
-                }
-
-                var createCandidateInput = await req.GetJsonBodyValidatedAsync<CreateCandidateInput, CreateCandidateInputValidator>();
-                if (!createCandidateInput.IsValid)
-                {
-                    log.LogWarningEx($"Can not create candidate: {createCandidateInput.ToErrorString()}");
-                    return createCandidateInput.ToBadRequest();
-                }
-
-                var candidate = this.mapper.Map<Candidate>(createCandidateInput.Value);
-                this.mapper.Map(category, candidate);
-
-                await candidates.AddAsync(candidate);
-                await RunChangeCandidateCountStoredProcedureAsync(categoriesDocumentClient, categoryId, 1);
-
-                log.LogInformationEx($"Candidate {candidate.Id} added to category: {candidate.CategoryId}");
-                return new OkObjectResult(candidate);
+                var msg = $"Category for candidate not found by id: {categoryId}";
+                log.LogWarningEx(msg);
+                return new NotFoundResult();
             }
-            finally
+
+            var createCandidateInput = req.Validate<CreateCandidateInput, CreateCandidateInputValidator>();
+            if (!createCandidateInput.IsValid)
             {
-                log.LogInformationEx("STOP");
+                log.LogWarningEx($"Can not create candidate: {createCandidateInput.ToErrorString()}");
+                return createCandidateInput.ToBadRequest();
             }
+
+            var candidate = this.mapper.Map<Candidate>(createCandidateInput.Value);
+            this.mapper.Map(category, candidate);
+
+            await candidates.AddAsync(candidate);
+            await RunChangeCandidateCountStoredProcedureAsync(categoriesDocumentClient, categoryId, 1);
+
+            log.LogInformationEx($"Candidate {candidate.Id} added to category: {candidate.CategoryId}");
+            return new OkObjectResult(candidate);
         }
-
-
 
         [FunctionName("DeleteCandidate")]
         public async Task<IActionResult> DeleteCandidate(
@@ -105,8 +96,7 @@ namespace AzureUpskill.Functions
             string categoryId,
             ILogger log)
         {
-            log.LogInformationEx("START");
-            try
+            return await CosmosDbExecutionHelper.RunInCosmosDbContext(async () =>
             {
                 if (candidateDocument is null)
                 {
@@ -130,22 +120,12 @@ namespace AzureUpskill.Functions
                 }
 
                 return new StatusCodeResult((int)result.StatusCode);
-            }
-            catch (DocumentClientException dce)
-            {
-                var message = $"Deleting category failed ${dce.Message}";
-                log.LogErrorEx(dce, message);
-                return new BadRequestObjectResult(new { Message = message, ErrorCode = dce.Error });
-            }
-            finally
-            {
-                log.LogInformationEx("STOP");
-            }
+            }, log);
         }
 
         [FunctionName("UpdateCandidate")]
         public async Task<IActionResult> UpdateCandidate(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "categories/{categoryId}/candidates/{candidateId}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "categories/{categoryId}/candidates/{candidateId}")] UpdateCandidateInput req,
             [CosmosDB(
                 databaseName: Consts.DbName,
                 collectionName: Consts.CandidatesContainerName,
@@ -161,15 +141,13 @@ namespace AzureUpskill.Functions
         {
             try
             {
-                log.LogInformationEx("START");
-
                 if (candidateDocument is null)
                 {
                     log.LogInformationEx($"Candidate with id: {candidateId} was not found");
                     return new NotFoundResult();
                 }
 
-                var validated = await req.GetJsonBodyValidatedAsync<UpdateCandidateInput, UpdateCandidateInputValidator>();
+                var validated = req.Validate<UpdateCandidateInput, UpdateCandidateInputValidator>();
                 if (!validated.IsValid)
                 {
                     return validated.ToBadRequest();
@@ -198,10 +176,6 @@ namespace AzureUpskill.Functions
                 log.LogErrorEx(dce, message);
                 return new BadRequestObjectResult(new { Message = message, ErrorCode = dce.Error });
             }
-            finally
-            {
-                log.LogInformationEx("STOP");
-            }
         }
 
         [FunctionName("GetCandidate")]
@@ -216,29 +190,20 @@ namespace AzureUpskill.Functions
             string candidateId,
             ILogger log)
         {
-            try
+            if (candidate is null)
             {
-                log.LogInformationEx("START");
-
-                if (candidate is null)
-                {
-                    log.LogInformationEx($"Candidate with id: {candidateId} was not found");
-                    return new NotFoundResult();
-                }
-
-                return new OkObjectResult(candidate);
+                log.LogInformationEx($"Candidate with id: {candidateId} was not found");
+                return new NotFoundResult();
             }
-            finally
-            {
-                log.LogInformationEx("STOP");
-            }
+
+            return new OkObjectResult(candidate);
         }
 
         private static async Task RunChangeCandidateCountStoredProcedureAsync(DocumentClient categoriesClient, string categoryId, int changeCountValue)
         {
             var spUri = UriFactory.CreateStoredProcedureUri(Consts.DbName, Consts.CategoriesContainerName,
                 "changeCandidateCount");
-            await categoriesClient.ExecuteStoredProcedureAsync<dynamic>(spUri, new RequestOptions { PartitionKey = new PartitionKey(categoryId)}, new { categoryId, changeCountValue });
+            await categoriesClient.ExecuteStoredProcedureAsync<dynamic>(spUri, new RequestOptions { PartitionKey = new PartitionKey(categoryId) }, new { categoryId, changeCountValue });
         }
     }
 }

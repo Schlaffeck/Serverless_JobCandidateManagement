@@ -1,0 +1,164 @@
+﻿using AzureUpskill.Functions.Filters;
+using AzureUpskill.Functions.Storage;
+using AzureUpskill.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Documents;
+using Microsoft.Azure.Documents.Client;
+using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.Http;
+using Microsoft.Extensions.Logging;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
+using System.Threading.Tasks;
+
+namespace AzureUpskill.Functions
+{
+    [ExecutionLogging]
+    [ErrorHandler]
+    public class CandidatesFilesFunctions
+    {
+        [FunctionName("GetCandidateCvUploadLink")]
+        public async Task<IActionResult> GetCandidateCvUploadLink(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "categories/{categoryId}/candidates/{candidateId}/documents/upload-link")] 
+                HttpRequest req,
+            [StorageAccount(Consts.FilesStorageConnectionStringName)] CloudStorageAccount cloudStorageAccount,
+            string categoryId,
+            string candidateId,
+            ILogger logger)
+        {
+            var blobRef = CloudBlobHelper.GetCandidateDocumentBlobReference(cloudStorageAccount, categoryId, candidateId);
+            return new OkObjectResult(blobRef.GetUploadLink());
+        }
+
+        [FunctionName("GetCandidatePictureUploadLink")]
+        public async Task<IActionResult> GetCandidatePictureUploadLink(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "categories/{categoryId}/candidates/{candidateId}/pictures/upload-link")]
+                HttpRequest req,
+            [StorageAccount(Consts.FilesStorageConnectionStringName)] CloudStorageAccount cloudStorageAccount,
+            string categoryId,
+            string candidateId,
+            ILogger logger)
+        {
+            var blobRef = CloudBlobHelper.GetCandidatePictureBlobReference(cloudStorageAccount, categoryId, candidateId);
+            return new OkObjectResult(blobRef.GetUploadLink());
+        }
+
+        [FunctionName(nameof(GetCandidateCvDownloadLink))]
+        public async Task<IActionResult> GetCandidateCvDownloadLink(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "categories/{categoryId}/candidates/{candidateId}/documents/download-link")]
+                HttpRequest req,
+            [StorageAccount(Consts.FilesStorageConnectionStringName)] CloudStorageAccount cloudStorageAccount,
+            [CosmosDB(
+                databaseName: Consts.DbName,
+                collectionName: Consts.CandidatesContainerName,
+                PartitionKey = "{categoryId}",
+                Id = "{candidateId}",
+                ConnectionStringSetting = Consts.CosmosDbConnectionStringName)] CandidateDocument candidate,
+            string categoryId,
+            string candidateId,
+            ILogger logger)
+        {
+            if (candidate is null)
+            {
+                return new NotFoundObjectResult("Candidate not found");
+            }
+
+            var blobRef = CloudBlobHelper.GetFileBlobReference(cloudStorageAccount, candidate.CvDocumentUri);
+            if (blobRef is null || !await blobRef.ExistsAsync())
+            {
+                return new NotFoundObjectResult($"File {candidate.PictureUri} not found in storage");
+            }
+
+            return new OkObjectResult(blobRef.GetDownloadLink());
+        }
+
+        [FunctionName(nameof(GetCandidatePictureDownloadLink))]
+        public async Task<IActionResult> GetCandidatePictureDownloadLink(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "categories/{categoryId}/candidates/{candidateId}/pictures/download-link")]
+                HttpRequest req,
+            [StorageAccount(Consts.FilesStorageConnectionStringName)] CloudStorageAccount cloudStorageAccount,
+            [CosmosDB(
+                databaseName: Consts.DbName,
+                collectionName: Consts.CandidatesContainerName,
+                PartitionKey = "{categoryId}",
+                Id = "{candidateId}",
+                ConnectionStringSetting = Consts.CosmosDbConnectionStringName)] CandidateDocument candidate,
+            string categoryId,
+            string candidateId,
+            ILogger logger)
+        {
+            if(candidate is null)
+            {
+                return new NotFoundObjectResult("Candidate not found");
+            }
+
+            var blobRef = CloudBlobHelper.GetFileBlobReference(cloudStorageAccount, candidate.PictureUri);
+            if(blobRef is null || !await blobRef.ExistsAsync())
+            {
+                return new NotFoundObjectResult($"File {candidate.PictureUri} not found in storage");
+            }
+
+            return new OkObjectResult(blobRef.GetDownloadLink());
+        }
+
+        [FunctionName(nameof(OnCandidateDocumentUploaded))]
+        public async Task OnCandidateDocumentUploaded(
+            [BlobTrigger(Consts.CandidatesDocumentsBlobContainerName 
+                            + "/categories/{categoryId}/candidates/{candidateId}/{blobName}.{blobExtension}", 
+                Connection = Consts.FilesStorageConnectionStringName)] ICloudBlob cloudBlob,
+            [CosmosDB(
+                databaseName: Consts.DbName,
+                collectionName: Consts.CandidatesContainerName,
+                PartitionKey = "{categoryId}",
+                Id = "{candidateId}",
+                ConnectionStringSetting = Consts.CosmosDbConnectionStringName)] CandidateDocument candidate,
+            [CosmosDB(
+                databaseName: Consts.DbName,
+                collectionName: Consts.CandidatesContainerName,
+                ConnectionStringSetting = Consts.CosmosDbConnectionStringName)] DocumentClient documentClient,
+            string categoryId,
+            ILogger logger)
+        {
+            if(cloudBlob is null || candidate is null)
+            {
+                return;
+            }
+
+            candidate.CvDocumentUri = cloudBlob.Uri.AbsoluteUri;
+            await documentClient.UpsertDocumentAsync(candidate.SelfLink, candidate, new RequestOptions { 
+                PartitionKey = new PartitionKey(categoryId)
+            });
+        }
+
+        [FunctionName(nameof(OnCandidatePictureUploaded))]
+        public async Task OnCandidatePictureUploaded(
+            [BlobTrigger(Consts.CandidatesPicturesBlobContainerName
+                            + "/categories/{categoryId}/candidates/{candidateId}/{blobName}.{blobExtension}",
+                Connection = Consts.FilesStorageConnectionStringName)] ICloudBlob cloudBlob,
+            [CosmosDB(
+                databaseName: Consts.DbName,
+                collectionName: Consts.CandidatesContainerName,
+                PartitionKey = "{categoryId}",
+                Id = "{candidateId}",
+                ConnectionStringSetting = Consts.CosmosDbConnectionStringName)] CandidateDocument candidate,
+            [CosmosDB(
+                databaseName: Consts.DbName,
+                collectionName: Consts.CandidatesContainerName,
+                ConnectionStringSetting = Consts.CosmosDbConnectionStringName)] DocumentClient documentClient,
+            string categoryId,
+            ILogger logger)
+        {
+            if (cloudBlob is null || candidate is null)
+            {
+                return;
+            }
+
+            candidate.PictureUri = cloudBlob.Uri.AbsoluteUri;
+            await documentClient.UpsertDocumentAsync(candidate.SelfLink, candidate, new RequestOptions
+            {
+                PartitionKey = new PartitionKey(categoryId)
+            });
+        }
+    }
+}

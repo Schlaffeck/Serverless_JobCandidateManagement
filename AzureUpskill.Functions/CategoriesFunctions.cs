@@ -19,14 +19,18 @@ using AzureUpskill.Functions.Validation;
 using AzureUpskill.Models.UpdateCategory.Validation;
 using AzureUpskill.Models.DeleteCategory.Validation;
 using AzureUpskill.Helpers;
+using AzureUpskill.Functions.Filters;
+using AzureUpskill.Functions.CosmosDb;
 
 namespace AzureUpskill.Functions
 {
+    [ExecutionLogging]
+    [ErrorHandler]
     public static class CategoriesFunctions
     {
         [FunctionName("CreateCategory")]
         public static async Task<IActionResult> CreateCategory(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = Consts.CategoriesContainerName)] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "categories")] CreateCategoryInput req,
             [CosmosDB(
                 databaseName: Consts.DbName,
                 collectionName: Consts.CategoriesContainerName,
@@ -34,34 +38,25 @@ namespace AzureUpskill.Functions
                 CreateIfNotExists = true)] IAsyncCollector<Category> categories,
             ILogger log)
         {
-            try
+            var validated = req.Validate<CreateCategoryInput, CreateCategoryInputValidator>();
+            if (!validated.IsValid)
             {
-                log.LogInformationEx("START");
-
-                var validated = await req.GetJsonBodyValidatedAsync<CreateCategoryInput, CreateCategoryInputValidator>();
-                if(!validated.IsValid)
-                {
-                    return validated.ToBadRequest();
-                }
-
-                var id = Guid.NewGuid().ToString(); 
-                var newCategory = new Category
-                {
-                    Id = id,
-                    CategoryId = id,
-                    Name = validated.Value.Name
-                };
-
-                await categories.AddAsync(newCategory);
-
-                log.LogInformationEx($"Creating category with name: {validated.Value.Name}");
-
-                return new OkObjectResult(newCategory);
+                return validated.ToBadRequest();
             }
-            finally
+
+            var id = Guid.NewGuid().ToString();
+            var newCategory = new Category
             {
-                log.LogInformationEx("STOP");
-            }
+                Id = id,
+                CategoryId = id,
+                Name = validated.Value.Name
+            };
+
+            await categories.AddAsync(newCategory);
+
+            log.LogInformationEx($"Creating category with name: {validated.Value.Name}");
+
+            return new OkObjectResult(newCategory);
         }
 
         [FunctionName("DeleteCategory")]
@@ -80,11 +75,9 @@ namespace AzureUpskill.Functions
             string categoryId,
             ILogger log)
         {
-            try
+            return await CosmosDbExecutionHelper.RunInCosmosDbContext(async () =>
             {
-                log.LogInformationEx("START");
-
-                if(categoryDocument is null)
+                if (categoryDocument is null)
                 {
                     log.LogInformationEx($"Document with id: {categoryId} was not found");
                     return new NotFoundResult();
@@ -110,22 +103,12 @@ namespace AzureUpskill.Functions
                 }
 
                 return new StatusCodeResult((int)result.StatusCode);
-            }
-            catch(DocumentClientException dce)
-            {
-                var message = $"Deleting category failed ${dce.Message}";
-                log.LogErrorEx(dce, message);
-                return new BadRequestObjectResult(new { Message = message, ErrorCode = dce.Error });
-            }
-            finally
-            {
-                log.LogInformationEx("STOP");
-            }
+            }, log);
         }
 
         [FunctionName("UpdateCategory")]
         public static async Task<IActionResult> UpdateCategory(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "put", "patch", Route = "categories/{categoryId}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "put", "patch", Route = "categories/{categoryId}")] UpdateCategoryInput req,
             [CosmosDB(
                 databaseName: Consts.DbName,
                 collectionName: Consts.CategoriesContainerName,
@@ -139,17 +122,15 @@ namespace AzureUpskill.Functions
             string categoryId,
             ILogger log)
         {
-            try
+            return await CosmosDbExecutionHelper.RunInCosmosDbContext(async () =>
             {
-                log.LogInformationEx("START");
-
                 if (category is null)
                 {
                     log.LogInformationEx($"Document with id: {categoryId} was not found");
                     return new NotFoundResult();
                 }
 
-                var validated = await req.GetJsonBodyValidatedAsync<UpdateCategoryInput, UpdateCategoryInputValidator>();
+                var validated = req.Validate<UpdateCategoryInput, UpdateCategoryInputValidator>();
                 if (!validated.IsValid)
                 {
                     return validated.ToBadRequest();
@@ -159,7 +140,7 @@ namespace AzureUpskill.Functions
 
                 category.SetPropertyValue(nameof(Category.Name), validated.Value.Name);
                 var result = await documentClient.UpsertDocumentAsync(
-                    category.SelfLink, 
+                    category.SelfLink,
                     category,
                     new RequestOptions { PartitionKey = new PartitionKey(categoryId) });
 
@@ -169,17 +150,7 @@ namespace AzureUpskill.Functions
                 }
 
                 return new StatusCodeResult((int)result.StatusCode);
-            }
-            catch (DocumentClientException dce)
-            {
-                var message = $"Category update failed: {dce.Message}";
-                log.LogErrorEx(dce, message);
-                return new BadRequestObjectResult(new { Message = message, ErrorCode = dce.Error });
-            }
-            finally
-            {
-                log.LogInformationEx("STOP");
-            }
+            }, log);
         }
 
         [FunctionName("GetCategory")]
@@ -194,22 +165,13 @@ namespace AzureUpskill.Functions
             string categoryId,
             ILogger log)
         {
-            try
+            if (category is null)
             {
-                log.LogInformationEx("START");
-
-                if (category is null)
-                {
-                    log.LogInformationEx($"Document with id: {categoryId} was not found");
-                    return new NotFoundResult();
-                }
-
-                return new OkObjectResult(category);
+                log.LogInformationEx($"Document with id: {categoryId} was not found");
+                return new NotFoundResult();
             }
-            finally
-            {
-                log.LogInformationEx("STOP");
-            }
+
+            return new OkObjectResult(category);
         }
     }
 }
