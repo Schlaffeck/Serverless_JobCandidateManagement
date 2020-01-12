@@ -14,8 +14,7 @@ namespace AzureUpskill.Models.UpdateCandidate.Mapping
                 .ForMember(dest => dest.EmploymentFullMonths, opt => opt.MapFrom(src => EmploymentCalculator.CalculateEmploymentPeriodFullMonths(src.EmploymentHistory)))
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTimeOffset.Now))
-                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => DocumentStatus.Updated))
-                .ForMemberMapWithUpdatedChangedProperty(dest => dest.CategoryId, src => src.CategoryId);
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => DocumentStatus.Updated));
         }
     }
 }

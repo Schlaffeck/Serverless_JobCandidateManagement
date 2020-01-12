@@ -1,10 +1,11 @@
 ﻿using AzureUpskill.Models.Data.Base;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 
 namespace AzureUpskill.Models.Data
 {
-    public class Candidate : ChangesDescribingModelBase
+    public class Candidate : DocumentStatusInfoBase
     {
         public const string TypeName = nameof(Candidate);
 
@@ -36,5 +37,8 @@ namespace AzureUpskill.Models.Data
         public List<EmploymentHistory> EmploymentHistory { get; set; } = new List<EmploymentHistory>();
 
         public List<Skill> Skills { get; set; } = new List<Skill>();
+        public DateTimeOffset CreatedAt { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public DateTimeOffset? UpdatedAt { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public DocumentStatus Status { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     }
 }

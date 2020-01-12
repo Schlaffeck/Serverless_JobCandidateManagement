@@ -12,7 +12,7 @@ namespace AzureUpskill.Models.Data.Mapping
             CreateMap<Candidate, Candidate>();
 
             CreateMap<Category, Candidate>()
-                .ForMemberMapWithUpdatedChangedProperty(dest => dest.CategoryId, src => src.CategoryId)
+                .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.CategoryId))
                 .ForAllOtherMembers(opt => opt.Ignore());
         }
     }
