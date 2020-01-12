@@ -99,5 +99,13 @@ namespace AzureUpskill.Helpers
                 return JsonConvert.DeserializeObject(requestBody, dataType);
             }
         }
+
+        public static string ToErrorString(this HttpResponse httpResponse)
+        {
+            using (var streamReader = new StreamReader(httpResponse.Body))
+            {
+                return $"{httpResponse.StatusCode} - {streamReader.ReadToEnd()}"; 
+            }
+        }
     }
 }

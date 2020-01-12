@@ -19,5 +19,10 @@ namespace AzureUpskill.Helpers
         {
             log.LogError(ex, $"{caller}:\t{message}");
         }
+
+        public static void LogErrorEx(this ILogger log, string message, [CallerMemberName] string caller = null)
+        {
+            log.LogError($"{caller}:\t{message}");
+        }
     }
 }

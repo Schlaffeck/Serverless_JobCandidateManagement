@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AzureUpskill.Models.Data;
+using System;
 using System.Collections.Generic;
 
 namespace AzureUpskill.Models.Helpers

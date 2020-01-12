@@ -2,12 +2,20 @@
 {
     public static class Consts
     {
-        public const string DbName = "CvDatabase";
-        public const string CategoriesContainerName = "Categories";
-        public const string CandidatesContainerName = "Candidates";
-        public const string CosmosDbConnectionStringName = "CosmosDbConnection";
-        public const string FilesStorageConnectionStringName = "FilesStorageConnection";
-        public const string CandidatesDocumentsBlobContainerName = "candidates-documents";
-        public const string CandidatesPicturesBlobContainerName = "candidates-pictures";
+        public static class CosmosDb
+        {
+            public const string DbName = "CvDatabase";
+            public const string CategoriesContainerName = "Categories";
+            public const string CandidatesContainerName = "Candidates";
+            public const string ConnectionStringName = "CosmosDbConnection";
+            public const string LeasesContainerName = "leases";
+        }
+
+        public static class Storage
+        {
+            public const string ConnectionStringName = "FilesStorageConnection";
+            public const string CandidatesDocumentsBlobContainerName = "candidates-documents";
+            public const string CandidatesPicturesBlobContainerName = "candidates-pictures";
+        }
     }
 }

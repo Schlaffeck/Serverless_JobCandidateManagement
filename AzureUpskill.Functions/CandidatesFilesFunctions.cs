@@ -1,6 +1,6 @@
 ﻿using AzureUpskill.Functions.Filters;
 using AzureUpskill.Functions.Storage;
-using AzureUpskill.Models;
+using AzureUpskill.Models.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Documents;
@@ -22,7 +22,7 @@ namespace AzureUpskill.Functions
         public async Task<IActionResult> GetCandidateCvUploadLink(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "categories/{categoryId}/candidates/{candidateId}/documents/upload-link")] 
                 HttpRequest req,
-            [StorageAccount(Consts.FilesStorageConnectionStringName)] CloudStorageAccount cloudStorageAccount,
+            [StorageAccount(Consts.Storage.ConnectionStringName)] CloudStorageAccount cloudStorageAccount,
             string categoryId,
             string candidateId,
             ILogger logger)
@@ -35,7 +35,7 @@ namespace AzureUpskill.Functions
         public async Task<IActionResult> GetCandidatePictureUploadLink(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "categories/{categoryId}/candidates/{candidateId}/pictures/upload-link")]
                 HttpRequest req,
-            [StorageAccount(Consts.FilesStorageConnectionStringName)] CloudStorageAccount cloudStorageAccount,
+            [StorageAccount(Consts.Storage.ConnectionStringName)] CloudStorageAccount cloudStorageAccount,
             string categoryId,
             string candidateId,
             ILogger logger)
@@ -48,13 +48,13 @@ namespace AzureUpskill.Functions
         public async Task<IActionResult> GetCandidateCvDownloadLink(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "categories/{categoryId}/candidates/{candidateId}/documents/download-link")]
                 HttpRequest req,
-            [StorageAccount(Consts.FilesStorageConnectionStringName)] CloudStorageAccount cloudStorageAccount,
+            [StorageAccount(Consts.Storage.ConnectionStringName)] CloudStorageAccount cloudStorageAccount,
             [CosmosDB(
-                databaseName: Consts.DbName,
-                collectionName: Consts.CandidatesContainerName,
+                databaseName: Consts.CosmosDb.DbName,
+                collectionName: Consts.CosmosDb.CandidatesContainerName,
                 PartitionKey = "{categoryId}",
                 Id = "{candidateId}",
-                ConnectionStringSetting = Consts.CosmosDbConnectionStringName)] CandidateDocument candidate,
+                ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName)] CandidateDocument candidate,
             string categoryId,
             string candidateId,
             ILogger logger)
@@ -77,13 +77,13 @@ namespace AzureUpskill.Functions
         public async Task<IActionResult> GetCandidatePictureDownloadLink(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "categories/{categoryId}/candidates/{candidateId}/pictures/download-link")]
                 HttpRequest req,
-            [StorageAccount(Consts.FilesStorageConnectionStringName)] CloudStorageAccount cloudStorageAccount,
+            [StorageAccount(Consts.Storage.ConnectionStringName)] CloudStorageAccount cloudStorageAccount,
             [CosmosDB(
-                databaseName: Consts.DbName,
-                collectionName: Consts.CandidatesContainerName,
+                databaseName: Consts.CosmosDb.DbName,
+                collectionName: Consts.CosmosDb.CandidatesContainerName,
                 PartitionKey = "{categoryId}",
                 Id = "{candidateId}",
-                ConnectionStringSetting = Consts.CosmosDbConnectionStringName)] CandidateDocument candidate,
+                ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName)] CandidateDocument candidate,
             string categoryId,
             string candidateId,
             ILogger logger)
@@ -104,19 +104,19 @@ namespace AzureUpskill.Functions
 
         [FunctionName(nameof(OnCandidateDocumentUploaded))]
         public async Task OnCandidateDocumentUploaded(
-            [BlobTrigger(Consts.CandidatesDocumentsBlobContainerName 
+            [BlobTrigger(Consts.Storage.CandidatesDocumentsBlobContainerName 
                             + "/categories/{categoryId}/candidates/{candidateId}/{blobName}.{blobExtension}", 
-                Connection = Consts.FilesStorageConnectionStringName)] ICloudBlob cloudBlob,
+                Connection = Consts.Storage.ConnectionStringName)] ICloudBlob cloudBlob,
             [CosmosDB(
-                databaseName: Consts.DbName,
-                collectionName: Consts.CandidatesContainerName,
+                databaseName: Consts.CosmosDb.DbName,
+                collectionName: Consts.CosmosDb.CandidatesContainerName,
                 PartitionKey = "{categoryId}",
                 Id = "{candidateId}",
-                ConnectionStringSetting = Consts.CosmosDbConnectionStringName)] CandidateDocument candidate,
+                ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName)] CandidateDocument candidate,
             [CosmosDB(
-                databaseName: Consts.DbName,
-                collectionName: Consts.CandidatesContainerName,
-                ConnectionStringSetting = Consts.CosmosDbConnectionStringName)] DocumentClient documentClient,
+                databaseName: Consts.CosmosDb.DbName,
+                collectionName: Consts.CosmosDb.CandidatesContainerName,
+                ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName)] DocumentClient documentClient,
             string categoryId,
             ILogger logger)
         {
@@ -133,19 +133,19 @@ namespace AzureUpskill.Functions
 
         [FunctionName(nameof(OnCandidatePictureUploaded))]
         public async Task OnCandidatePictureUploaded(
-            [BlobTrigger(Consts.CandidatesPicturesBlobContainerName
+            [BlobTrigger(Consts.Storage.CandidatesPicturesBlobContainerName
                             + "/categories/{categoryId}/candidates/{candidateId}/{blobName}.{blobExtension}",
-                Connection = Consts.FilesStorageConnectionStringName)] ICloudBlob cloudBlob,
+                Connection = Consts.Storage.ConnectionStringName)] ICloudBlob cloudBlob,
             [CosmosDB(
-                databaseName: Consts.DbName,
-                collectionName: Consts.CandidatesContainerName,
+                databaseName: Consts.CosmosDb.DbName,
+                collectionName: Consts.CosmosDb.CandidatesContainerName,
                 PartitionKey = "{categoryId}",
                 Id = "{candidateId}",
-                ConnectionStringSetting = Consts.CosmosDbConnectionStringName)] CandidateDocument candidate,
+                ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName)] CandidateDocument candidate,
             [CosmosDB(
-                databaseName: Consts.DbName,
-                collectionName: Consts.CandidatesContainerName,
-                ConnectionStringSetting = Consts.CosmosDbConnectionStringName)] DocumentClient documentClient,
+                databaseName: Consts.CosmosDb.DbName,
+                collectionName: Consts.CosmosDb.CandidatesContainerName,
+                ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName)] DocumentClient documentClient,
             string categoryId,
             ILogger logger)
         {

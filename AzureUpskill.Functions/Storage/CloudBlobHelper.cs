@@ -10,14 +10,14 @@ namespace AzureUpskill.Functions.Storage
         public static CloudBlockBlob GetCandidateDocumentBlobReference(this CloudStorageAccount storageAccount, string categoryId, string candidateId)
         {
             var cloudBlobClient = storageAccount.CreateCloudBlobClient();
-            var containerReference = cloudBlobClient.GetContainerReference(Consts.CandidatesDocumentsBlobContainerName);
+            var containerReference = cloudBlobClient.GetContainerReference(Consts.Storage.CandidatesDocumentsBlobContainerName);
             return containerReference.GetBlockBlobReference(ConstructBlobName(categoryId, candidateId));
         }
 
         public static CloudBlockBlob GetCandidatePictureBlobReference(this CloudStorageAccount storageAccount, string categoryId, string candidateId)
         {
             var cloudBlobClient = storageAccount.CreateCloudBlobClient();
-            var containerReference = cloudBlobClient.GetContainerReference(Consts.CandidatesPicturesBlobContainerName);
+            var containerReference = cloudBlobClient.GetContainerReference(Consts.Storage.CandidatesPicturesBlobContainerName);
             return containerReference.GetBlockBlobReference(ConstructBlobName(categoryId, candidateId));
         }
 
