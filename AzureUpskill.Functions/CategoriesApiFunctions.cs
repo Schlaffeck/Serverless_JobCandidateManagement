@@ -22,6 +22,8 @@ using AzureUpskill.Helpers;
 using AzureUpskill.Functions.Filters;
 using AzureUpskill.Functions.CosmosDb;
 using AutoMapper;
+using AzureFunctions.Extensions.Swashbuckle.Attribute;
+using System.Net;
 
 namespace AzureUpskill.Functions
 {
@@ -36,14 +38,17 @@ namespace AzureUpskill.Functions
             this._mapper = mapper;
         }
 
-        [FunctionName("CreateCategory")]
+        [FunctionName("Category_Create")]
+        [ProducesResponseType(typeof(Category), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> CreateCategory(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "categories")] CreateCategoryInput req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "categories")]
+            [RequestBodyType(typeof(CreateCategoryInput), "Create category model")]
+                CreateCategoryInput req,
             [CosmosDB(
                 databaseName: Consts.CosmosDb.DbName,
                 collectionName: Consts.CosmosDb.CategoriesContainerName,
                 ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName,
-                CreateIfNotExists = true)] IAsyncCollector<Category> categories,
+                CreateIfNotExists = true), SwaggerIgnore] IAsyncCollector<Category> categories,
             ILogger log)
         {
             var validated = req.Validate<CreateCategoryInput, CreateCategoryInputValidator>();
@@ -61,7 +66,8 @@ namespace AzureUpskill.Functions
             return new OkObjectResult(newCategory);
         }
 
-        [FunctionName("DeleteCategory")]
+        [FunctionName("Category_Delete")]
+        [ProducesResponseType(typeof(CategoryDocument), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> DeleteCategory(
             [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "categories/{categoryId}")] HttpRequest req,
             [CosmosDB(
@@ -69,11 +75,11 @@ namespace AzureUpskill.Functions
                 collectionName: Consts.CosmosDb.CategoriesContainerName,
                 PartitionKey = "{categoryId}",
                 Id = "{categoryId}",
-                ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName)] CategoryDocument categoryDocument,
+                ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName), SwaggerIgnore] CategoryDocument categoryDocument,
              [CosmosDB(
                 databaseName: Consts.CosmosDb.DbName,
                 collectionName: Consts.CosmosDb.CategoriesContainerName,
-                ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName)] DocumentClient documentClient,
+                ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName), SwaggerIgnore] DocumentClient documentClient,
             string categoryId,
             ILogger log)
         {
@@ -108,19 +114,22 @@ namespace AzureUpskill.Functions
             }, log);
         }
 
-        [FunctionName("UpdateCategory")]
+        [FunctionName("Category_Update")]
+        [ProducesResponseType(typeof(Category), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> UpdateCategory(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "put", "patch", Route = "categories/{categoryId}")] UpdateCategoryInput req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "put", "patch", Route = "categories/{categoryId}")]
+            [RequestBodyType(typeof(UpdateCategoryInput), "update category model")]
+                UpdateCategoryInput req,
             [CosmosDB(
                 databaseName: Consts.CosmosDb.DbName,
                 collectionName: Consts.CosmosDb.CategoriesContainerName,
                 PartitionKey = "{categoryId}",
                 Id = "{categoryId}",
-                ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName)] CategoryDocument categoryDocument,
+                ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName), SwaggerIgnore] CategoryDocument categoryDocument,
              [CosmosDB(
                 databaseName: Consts.CosmosDb.DbName,
                 collectionName: Consts.CosmosDb.CategoriesContainerName,
-                ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName)] DocumentClient documentClient,
+                ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName), SwaggerIgnore] DocumentClient documentClient,
             string categoryId,
             ILogger log)
         {
@@ -155,7 +164,8 @@ namespace AzureUpskill.Functions
             }, log);
         }
 
-        [FunctionName("GetCategory")]
+        [FunctionName("Category_Get")]
+        [ProducesResponseType(typeof(Category), (int)HttpStatusCode.OK)]
         public static async Task<IActionResult> GetCategory(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "categories/{categoryId}")] HttpRequest req,
             [CosmosDB(
@@ -163,7 +173,7 @@ namespace AzureUpskill.Functions
                 collectionName: Consts.CosmosDb.CategoriesContainerName,
                 PartitionKey = "{categoryId}",
                 Id = "{categoryId}",
-                ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName)] Category category,
+                ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName), SwaggerIgnore]Category category,
             string categoryId,
             ILogger log)
         {

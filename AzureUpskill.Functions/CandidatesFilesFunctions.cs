@@ -1,4 +1,5 @@
-﻿using AzureUpskill.Functions.Filters;
+﻿using AzureFunctions.Extensions.Swashbuckle.Attribute;
+using AzureUpskill.Functions.Filters;
 using AzureUpskill.Functions.Storage;
 using AzureUpskill.Models.Data;
 using Microsoft.AspNetCore.Http;
@@ -18,11 +19,11 @@ namespace AzureUpskill.Functions
     [ErrorHandler]
     public class CandidatesFilesFunctions
     {
-        [FunctionName("GetCandidateCvUploadLink")]
+        [FunctionName("Candidate_GetCvUploadLink")]
         public async Task<IActionResult> GetCandidateCvUploadLink(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "categories/{categoryId}/candidates/{candidateId}/documents/upload-link")] 
                 HttpRequest req,
-            [StorageAccount(Consts.Storage.ConnectionStringName)] CloudStorageAccount cloudStorageAccount,
+            [StorageAccount(Consts.Storage.ConnectionStringName), SwaggerIgnore] CloudStorageAccount cloudStorageAccount,
             string categoryId,
             string candidateId,
             ILogger logger)
@@ -31,11 +32,11 @@ namespace AzureUpskill.Functions
             return new OkObjectResult(blobRef.GetUploadLink());
         }
 
-        [FunctionName("GetCandidatePictureUploadLink")]
+        [FunctionName("Candidate_GetPictureUploadLink")]
         public async Task<IActionResult> GetCandidatePictureUploadLink(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "categories/{categoryId}/candidates/{candidateId}/pictures/upload-link")]
                 HttpRequest req,
-            [StorageAccount(Consts.Storage.ConnectionStringName)] CloudStorageAccount cloudStorageAccount,
+            [StorageAccount(Consts.Storage.ConnectionStringName), SwaggerIgnore] CloudStorageAccount cloudStorageAccount,
             string categoryId,
             string candidateId,
             ILogger logger)
@@ -44,17 +45,17 @@ namespace AzureUpskill.Functions
             return new OkObjectResult(blobRef.GetUploadLink());
         }
 
-        [FunctionName(nameof(GetCandidateCvDownloadLink))]
+        [FunctionName("Candidate_GetCvDownloadLink")]
         public async Task<IActionResult> GetCandidateCvDownloadLink(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "categories/{categoryId}/candidates/{candidateId}/documents/download-link")]
                 HttpRequest req,
-            [StorageAccount(Consts.Storage.ConnectionStringName)] CloudStorageAccount cloudStorageAccount,
+            [StorageAccount(Consts.Storage.ConnectionStringName), SwaggerIgnore] CloudStorageAccount cloudStorageAccount,
             [CosmosDB(
                 databaseName: Consts.CosmosDb.DbName,
                 collectionName: Consts.CosmosDb.CandidatesContainerName,
                 PartitionKey = "{categoryId}",
                 Id = "{candidateId}",
-                ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName)] CandidateDocument candidate,
+                ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName), SwaggerIgnore] CandidateDocument candidate,
             string categoryId,
             string candidateId,
             ILogger logger)
@@ -73,17 +74,17 @@ namespace AzureUpskill.Functions
             return new OkObjectResult(blobRef.GetDownloadLink());
         }
 
-        [FunctionName(nameof(GetCandidatePictureDownloadLink))]
+        [FunctionName("Candidate_GetPictureDownloadLink")]
         public async Task<IActionResult> GetCandidatePictureDownloadLink(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "categories/{categoryId}/candidates/{candidateId}/pictures/download-link")]
                 HttpRequest req,
-            [StorageAccount(Consts.Storage.ConnectionStringName)] CloudStorageAccount cloudStorageAccount,
+            [StorageAccount(Consts.Storage.ConnectionStringName), SwaggerIgnore] CloudStorageAccount cloudStorageAccount,
             [CosmosDB(
                 databaseName: Consts.CosmosDb.DbName,
                 collectionName: Consts.CosmosDb.CandidatesContainerName,
                 PartitionKey = "{categoryId}",
                 Id = "{candidateId}",
-                ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName)] CandidateDocument candidate,
+                ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName), SwaggerIgnore] CandidateDocument candidate,
             string categoryId,
             string candidateId,
             ILogger logger)
