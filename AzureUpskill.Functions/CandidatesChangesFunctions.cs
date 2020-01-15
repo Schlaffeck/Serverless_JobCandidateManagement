@@ -23,7 +23,7 @@ namespace AzureUpskill.Functions
             collectionName: Consts.CosmosDb.CandidatesContainerName,
             ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName,
             LeaseCollectionName = Consts.CosmosDb.LeasesContainerName,
-            CreateLeaseCollectionIfNotExists = true)]IReadOnlyList<Document> documents,
+            CreateLeaseCollectionIfNotExists = true)]IReadOnlyList<CandidateDocument> documents,
             [CosmosDB(
                 databaseName: Consts.CosmosDb.DbName,
                 collectionName: Consts.CosmosDb.CategoriesContainerName,
@@ -38,14 +38,11 @@ namespace AzureUpskill.Functions
             await ProcessingCandidateDocumentsAsync(documents, categoriesDocumentClient, candidatesDocumentClient, log);
         }
 
-        private async Task ProcessingCandidateDocumentsAsync(IReadOnlyList<Document> documents, DocumentClient categoriesDocumentClient, DocumentClient candidatesDocumentClient, ILogger log)
+        private async Task ProcessingCandidateDocumentsAsync(IReadOnlyList<CandidateDocument> candidates, DocumentClient categoriesDocumentClient, DocumentClient candidatesDocumentClient, ILogger log)
         {
-            var candidates = documents.Where(d => d.GetPropertyValue<string>(nameof(Candidate.Type)) == Candidate.TypeName)
-                .ToList();
             log.LogInformationEx($"Processing {candidates.Count} documents of type '{Candidate.TypeName}'");
-            foreach (var document in candidates)
+            foreach (var candidate in candidates)
             {
-                var candidate = JsonConvert.DeserializeObject<CandidateDocument>(document.ToString());
                 if (candidate.IsNew() || candidate.Status == DocumentStatus.Moved)
                 {
                     log.LogInformationEx($"{candidate.Type} ({candidate.Id}) created in category {candidate.CategoryId}");
