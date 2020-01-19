@@ -127,7 +127,7 @@ namespace AzureUpskill.Functions
             }
 
             candidate.CvDocumentUri = cloudBlob.Uri.AbsoluteUri;
-            await documentClient.UpsertDocumentAsync(candidate.SelfLink, candidate, new RequestOptions { 
+            await documentClient.ReplaceDocumentAsync(candidate.SelfLink, candidate, new RequestOptions { 
                 PartitionKey = new PartitionKey(categoryId)
             });
         }
@@ -156,7 +156,7 @@ namespace AzureUpskill.Functions
             }
 
             candidate.PictureUri = cloudBlob.Uri.AbsoluteUri;
-            await documentClient.UpsertDocumentAsync(candidate.SelfLink, candidate, new RequestOptions
+            await documentClient.ReplaceDocumentAsync(candidate.SelfLink, candidate, new RequestOptions
             {
                 PartitionKey = new PartitionKey(categoryId)
             });

@@ -250,7 +250,7 @@ namespace AzureUpskill.Functions
         {
             document.Status = DocumentStatus.Deleted;
             document.UpdatedAt = DateTime.Now;
-            return await documentClient.UpsertDocumentAsync(document.SelfLink, document, new RequestOptions
+            return await documentClient.ReplaceDocumentAsync(document.SelfLink, document, new RequestOptions
             {
                 PartitionKey = new PartitionKey(document.PartitionKey)
             });
