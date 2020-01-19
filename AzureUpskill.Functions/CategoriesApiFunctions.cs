@@ -150,7 +150,7 @@ namespace AzureUpskill.Functions
                 log.LogInformationEx($"Updating category with id: {categoryId}");
 
                 var category = _mapper.Map(validated.Value, (Category)categoryDocument);
-                var result = await documentClient.UpsertDocumentAsync(
+                var result = await documentClient.ReplaceDocumentAsync(
                     categoryDocument.SelfLink,
                     category,
                     new RequestOptions { PartitionKey = new PartitionKey(categoryId) });

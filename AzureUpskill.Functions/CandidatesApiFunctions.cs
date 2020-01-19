@@ -201,7 +201,7 @@ namespace AzureUpskill.Functions
                 {
                     log.LogInformationEx($"Updating candidate with id: {candidateId}");
                     candidate = _mapper.Map(validated.Value, (Candidate)candidateDocument);
-                    result = await candidatesDocumentClient.UpsertDocumentAsync(
+                    result = await candidatesDocumentClient.ReplaceDocumentAsync(
                         candidateDocument.SelfLink,
                         candidate,
                         new RequestOptions { PartitionKey = new PartitionKey(candidate.CategoryId) });
