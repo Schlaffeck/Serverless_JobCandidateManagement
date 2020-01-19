@@ -4,6 +4,9 @@
     <AzureFunctionsVersion>v2</AzureFunctionsVersion>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="CosmosDb\CosmosDbExecutionHelper.cs~RF51dad5.TMP" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="AutoMapper" Version="9.0.0" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="7.0.0" />
     <PackageReference Include="AzureFunctions.Extensions.Swashbuckle" Version="1.4.4" />
