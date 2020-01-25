@@ -19,12 +19,7 @@ namespace AzureUpskill.Functions
         {
             //Register the extension
             builder.AddSwashBuckle(Assembly.GetExecutingAssembly());
-            builder.Services.AddAutoMapper(
-                typeof(CommonMapper),
-                typeof(UpdateCategoryInputMapper),
-                typeof(CreateCategoryInputMapper),
-                typeof(UpdateCandidateInputMapper),
-                typeof(CreateCandidateInputMapper));
+            builder.Services.AddAutoMapper(typeof(CommonMapper).Assembly);
         }
     }
 }

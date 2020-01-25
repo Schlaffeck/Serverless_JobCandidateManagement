@@ -10,10 +10,13 @@ namespace AzureUpskill.Models.Data.Mapping
         public CommonMapper()
         {
             CreateMap<Candidate, Candidate>();
+            CreateMap<CandidateDocument, CandidateDocument>();
 
             CreateMap<Category, Candidate>()
                 .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.CategoryId))
                 .ForAllOtherMembers(opt => opt.Ignore());
+
+            CreateMap<Category, Category>();
         }
     }
 }

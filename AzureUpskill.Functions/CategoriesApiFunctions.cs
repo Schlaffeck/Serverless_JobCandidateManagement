@@ -15,7 +15,7 @@ using Microsoft.Azure.Documents;
 using System;
 using AzureUpskill.Models.UpdateCategory;
 using AzureUpskill.Models.CreateCategory.Validation;
-using AzureUpskill.Functions.Validation;
+using AzureUpskill.Functions.Helpers;
 using AzureUpskill.Models.UpdateCategory.Validation;
 using AzureUpskill.Models.DeleteCategory.Validation;
 using AzureUpskill.Helpers;
@@ -38,7 +38,7 @@ namespace AzureUpskill.Functions
             this._mapper = mapper;
         }
 
-        [FunctionName("Category_Create")]
+        [FunctionName(Names.CategoryCreateFunctionName)]
         [ProducesResponseType(typeof(Category), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> CreateCategory(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "categories")]
@@ -66,7 +66,7 @@ namespace AzureUpskill.Functions
             return new OkObjectResult(newCategory);
         }
 
-        [FunctionName("Category_Delete")]
+        [FunctionName(Names.CategoryDeleteFunctionName)]
         [ProducesResponseType(typeof(CategoryDocument), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> DeleteCategory(
             [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "categories/{categoryId}")] HttpRequest req,
@@ -114,7 +114,7 @@ namespace AzureUpskill.Functions
             }, log);
         }
 
-        [FunctionName("Category_Update")]
+        [FunctionName(Names.CategoryUpdateFunctionName)]
         [ProducesResponseType(typeof(Category), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> UpdateCategory(
             [HttpTrigger(AuthorizationLevel.Anonymous, "put", "patch", Route = "categories/{categoryId}")]
@@ -164,7 +164,7 @@ namespace AzureUpskill.Functions
             }, log);
         }
 
-        [FunctionName("Category_Get")]
+        [FunctionName(Names.CategoryGetFunctionName)]
         [ProducesResponseType(typeof(Category), (int)HttpStatusCode.OK)]
         public static async Task<IActionResult> GetCategory(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "categories/{categoryId}")] HttpRequest req,
@@ -184,6 +184,14 @@ namespace AzureUpskill.Functions
             }
 
             return new OkObjectResult(category);
+        }
+
+        public static class Names
+        {
+            public const string CategoryCreateFunctionName = "Category_Create";
+            public const string CategoryUpdateFunctionName = "Category_Update";
+            public const string CategoryGetFunctionName = "Category_Get";
+            public const string CategoryDeleteFunctionName = "Category_Delete";
         }
     }
 }

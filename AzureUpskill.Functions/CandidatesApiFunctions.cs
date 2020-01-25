@@ -8,7 +8,7 @@ using AzureUpskill.Models.CreateCandidate.Validation;
 using AzureUpskill.Models.CreateCandidate;
 using AzureUpskill.Helpers;
 using AutoMapper;
-using AzureUpskill.Functions.Validation;
+using AzureUpskill.Functions.Helpers;
 using AzureUpskill.Models.Data;
 using System;
 using Microsoft.Azure.Documents.Client;
@@ -20,6 +20,12 @@ using AzureUpskill.Models.Data.Base;
 using AzureFunctions.Extensions.Swashbuckle.Attribute;
 using System.Net;
 using AzureUpskill.Functions.Filters;
+using AzureUpskill.Models.Commands.UpdateCandidate;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
+using System.Threading;
+using Newtonsoft.Json;
+using AzureUpskill.Core;
+using static AzureUpskill.Functions.Helpers.DurableFunctionsHelper;
 
 namespace AzureUpskill.Functions
 {
@@ -34,7 +40,7 @@ namespace AzureUpskill.Functions
             this._mapper = mapper;
         }
 
-        [FunctionName("Candidate_Create")]
+        [FunctionName(Names.CandidateCreateFunctionName)]
         [ProducesResponseType(typeof(Candidate), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> CreateCandidate(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "categories/{categoryId}/candidates")]
@@ -81,7 +87,7 @@ namespace AzureUpskill.Functions
             return new OkObjectResult(candidate);
         }
 
-        [FunctionName("Candidate_Delete")]
+        [FunctionName(Names.CandidateDeleteFunctionName)]
         [ProducesResponseType(typeof(CandidateDocument), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> DeleteCandidate(
             [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "categories/{categoryId}/candidates/{candidateId}")] HttpRequest req,
@@ -109,7 +115,7 @@ namespace AzureUpskill.Functions
                     return new NotFoundResult();
                 }
 
-                var result = await MarkCandidateForDeletionAsync(candidateDocument, candidatesDocumentClient);
+                var result = await candidateDocument.MarkCandidateForDeletionAsync(candidatesDocumentClient);
 
                 if (result.StatusCode.IsSuccess())
                 {
@@ -121,12 +127,15 @@ namespace AzureUpskill.Functions
             }, log);
         }
 
-        [FunctionName("Candidate_Update")]
-        [ProducesResponseType(typeof(Candidate), (int)HttpStatusCode.OK)]
+        [FunctionName(Names.CandidateUpdateFunctionName)]
+        [ProducesResponseType(typeof(Result<Candidate>), (int)HttpStatusCode.OK)]
+        [ProducesErrorResponseType(typeof(Result<Candidate>))]
         public async Task<IActionResult> UpdateCandidate(
             [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "categories/{categoryId}/candidates/{candidateId}")]
             [RequestBodyType(typeof(UpdateCandidateInput), "Update candidate model")]
                 HttpRequest req,
+            [DurableClient, SwaggerIgnore] IDurableOrchestrationClient durableOrchestrationClient,
+            Microsoft.Azure.WebJobs.ExecutionContext functionExecutionContext,
             [CosmosDB(
                 databaseName: Consts.CosmosDb.DbName,
                 collectionName: Consts.CosmosDb.CandidatesContainerName,
@@ -145,12 +154,13 @@ namespace AzureUpskill.Functions
             string candidateId,
             ILogger log)
         {
-            try
+            return await CosmosDbExecutionHelper.RunInCosmosDbContext(async () =>
             {
                 if (candidateDocument is null)
                 {
-                    log.LogInformationEx($"Candidate with id: {candidateId} was not found");
-                    return new NotFoundResult();
+                    var msg = $"Candidate with id: {candidateId} was not found";
+                    log.LogInformationEx(msg);
+                    return new NotFoundObjectResult(msg);
                 }
 
                 var validated = await req.GetJsonBodyValidatedAsync<UpdateCandidateInput, UpdateCandidateInputValidator>();
@@ -159,70 +169,27 @@ namespace AzureUpskill.Functions
                     return validated.ToBadRequest();
                 }
 
-                var candidate = default(Candidate);
-                var result = default(ResourceResponse<Document>);
-                var newCategoryId = validated.Value.CategoryId;
-                if (newCategoryId != categoryId)
+                var updateCandidateCommand = new UpdateCandidateOrchestratedCommand
                 {
-                    var newCategoryUri = UriFactory.CreateDocumentUri(
-                        Consts.CosmosDb.DbName,
-                        Consts.CosmosDb.CategoriesContainerName,
-                        newCategoryId);
-                    var newCategory = await categoriesDocumentClient.ReadDocumentAsync<Category>(newCategoryUri, new RequestOptions
-                    {
-                        PartitionKey = new PartitionKey(newCategoryId)
-                    });
+                    CurrentCandidate = candidateDocument,
+                    UpdateCandidateInput = validated.Value
+                };
+                var orchestrationId = await durableOrchestrationClient.StartNewAsync(
+                    CandidatesActivityFunctions.Names.CandidateUpdateOrchestratedFunctionName,
+                    updateCandidateCommand);
+                log.LogInformationEx($"Started '{CandidatesActivityFunctions.Names.CandidateMoveOrchestratedFunctionName}' orchestration with " +
+                                      $"ID = '{orchestrationId}'");
+                var candidateUpdateResult = await durableOrchestrationClient
+                .WaitForOrchestratedFunctionResultAsync<Result<Candidate>>(orchestrationId);
+                log.LogInformationEx($"Finished '{CandidatesActivityFunctions.Names.CandidateMoveOrchestratedFunctionName}' orchestration with " +
+                                   $"ID = '{orchestrationId}'");
 
-                    if (newCategory.Document == null)
-                    {
-                        var msg = $"New category with id '{newCategoryId}' for candidate not found";
-                        log.LogErrorEx(msg);
-                        return new BadRequestObjectResult(msg);
-                    }
-
-                    candidate = _mapper.Map<Candidate>(candidateDocument);
-                    _mapper.Map(validated.Value, candidate as Candidate);
-                    _mapper.Map(newCategory.Document, candidate);
-                    candidate.Status = DocumentStatus.Moved;
-                    candidate.UpdatedAt = DateTime.Now;
-                    var docCollectionUri = UriFactory.CreateDocumentCollectionUri(
-                        Consts.CosmosDb.DbName,
-                        Consts.CosmosDb.CandidatesContainerName);
-                    result = await candidatesDocumentClient.CreateDocumentAsync(
-                        docCollectionUri,
-                        candidate,
-                        new RequestOptions { PartitionKey = new PartitionKey(newCategoryId) });
-                    if (result.StatusCode.IsSuccess())
-                    {
-                        await MarkCandidateForDeletionAsync(candidateDocument, candidatesDocumentClient);
-                    }
-                }
-                else
-                {
-                    log.LogInformationEx($"Updating candidate with id: {candidateId}");
-                    candidate = _mapper.Map(validated.Value, (Candidate)candidateDocument);
-                    result = await candidatesDocumentClient.ReplaceDocumentAsync(
-                        candidateDocument.SelfLink,
-                        candidate,
-                        new RequestOptions { PartitionKey = new PartitionKey(candidate.CategoryId) });
-                }
-
-                if (result.StatusCode.IsSuccess())
-                {
-                    return new OkObjectResult(candidate);
-                }
-
-                return new ObjectResult(result.ToErrorString()) { StatusCode = (int)result.StatusCode };
-            }
-            catch (DocumentClientException dce)
-            {
-                var message = $"Candidate update failed: {dce.Message}";
-                log.LogErrorEx(dce, message);
-                return new BadRequestObjectResult(new { Message = message, ErrorCode = dce.Error });
-            }
+                return ResultHelper.ToActionResult(candidateUpdateResult);
+            },
+            log);
         }
 
-        [FunctionName("Candidate_Get")]
+        [FunctionName(Names.CandidateGetFunctionName)]
         [ProducesResponseType(typeof(Candidate), (int)HttpStatusCode.OK)]
         public static async Task<IActionResult> GetCandidate(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "categories/{categoryId}/candidates/{candidateId}")] 
@@ -246,14 +213,12 @@ namespace AzureUpskill.Functions
             return new OkObjectResult(candidate);
         }
 
-        private async Task<ResourceResponse<Document>> MarkCandidateForDeletionAsync(CandidateDocument document, DocumentClient documentClient)
+        public static class Names
         {
-            document.Status = DocumentStatus.Deleted;
-            document.UpdatedAt = DateTime.Now;
-            return await documentClient.ReplaceDocumentAsync(document.SelfLink, document, new RequestOptions
-            {
-                PartitionKey = new PartitionKey(document.PartitionKey)
-            });
+            public const string CandidateCreateFunctionName = "Candidate_Create";
+            public const string CandidateUpdateFunctionName = "Candidate_Update";
+            public const string CandidateGetFunctionName = "Candidate_Get";
+            public const string CandidateDeleteFunctionName = "Candidate_Delete";
         }
     }
 }

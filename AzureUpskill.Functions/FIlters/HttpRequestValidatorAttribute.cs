@@ -1,5 +1,5 @@
 ﻿using AzureUpskill.Core.Validation;
-using AzureUpskill.Functions.Validation;
+using AzureUpskill.Functions.Helpers;
 using AzureUpskill.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs.Host;

@@ -14,5 +14,14 @@ namespace AzureUpskill.Functions.CosmosDb
                 return $"{response.StatusCode} - {streamReader.ReadToEnd()}";
             }
         }
+
+        public static string ToErrorString<TResource>(this DocumentResponse<TResource> response)
+            where TResource : new()
+        {
+            using (var streamReader = new StreamReader(response.ResponseStream))
+            {
+                return $"{response.StatusCode} - {streamReader.ReadToEnd()}";
+            }
+        }
     }
 }

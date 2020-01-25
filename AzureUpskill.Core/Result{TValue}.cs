@@ -18,6 +18,21 @@ namespace AzureUpskill.Core
         {
         }
 
+        public Result(IEnumerable<string> errors)
+        {
+            errorsList.AddRange(errors.Select(e => new ValidationFailure(string.Empty, e)));
+        }
+
+        public Result(params string[] errors)
+        {
+            errorsList.AddRange(errors.Select(e => new ValidationFailure(string.Empty, e)));
+        }
+
+        public Result(IEnumerable<ValidationFailure> validationFailures)
+        {
+            errorsList.AddRange(validationFailures);
+        }
+
         public Result(TValue value, IEnumerable<ValidationFailure> validationFailures)
         {
             Value = value;
@@ -33,6 +48,16 @@ namespace AzureUpskill.Core
         public void AddErrors(IEnumerable<ValidationFailure> validationErrors)
         {
             errorsList.AddRange(validationErrors);
+        }
+
+        public void AddError(ValidationFailure validationError)
+        {
+            errorsList.Add(validationError);
+        }
+
+        public void AddError(string propertyName, string errorMessage)
+        {
+            errorsList.Add(new ValidationFailure(propertyName, errorMessage));
         }
 
         public string ToErrorString()

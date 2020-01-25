@@ -18,6 +18,12 @@ namespace AzureUpskill.Helpers
             return code >= 200 && code < 300;
         }
 
+        public static bool IsSuccessStatusCode(this int httpStatusCodeInt)
+        {
+            var code = httpStatusCodeInt;
+            return code >= 200 && code < 300;
+        }
+
         /// <summary>
         /// Returns the deserialized request body with validation information.
         /// </summary>
