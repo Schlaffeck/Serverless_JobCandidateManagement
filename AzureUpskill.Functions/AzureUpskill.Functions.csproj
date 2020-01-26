@@ -23,6 +23,7 @@
     <ProjectReference Include="..\AzureUpskill.Core\AzureUpskill.Core.csproj" />
     <ProjectReference Include="..\AzureUpskill.Helpers\AzureUpskill.Helpers.csproj" />
     <ProjectReference Include="..\AzureUpskill.Models\AzureUpskill.Models.csproj" />
+    <ProjectReference Include="..\AzureUpskill.Search\AzureUpskill.Search.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">

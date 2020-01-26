@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Azure.Search" Version="10.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AzureUpskill.Core\AzureUpskill.Core.csproj" />
+    <ProjectReference Include="..\AzureUpskill.Models\AzureUpskill.Models.csproj" />
+  </ItemGroup>
+
+</Project>

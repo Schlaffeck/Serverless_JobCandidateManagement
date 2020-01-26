@@ -1,14 +1,14 @@
 ﻿using AutoMapper;
-using AzureUpskill.Models.CreateCandidate.Mapping;
-using AzureUpskill.Models.CreateCategory.Mapping;
 using AzureUpskill.Models.Data.Mapping;
-using AzureUpskill.Models.UpdateCandidate.Mapping;
-using AzureUpskill.Models.UpdateCategory.Mapping;
 using AzureFunctions.Extensions.Swashbuckle;
-using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using System.Reflection;
 using Microsoft.Azure.WebJobs.Hosting;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.Functions.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
+using AzureUpskill.Search.Mapping;
+using AzureUpskill.Search.Services.Interfaces;
+using AzureUpskill.Functions.Search;
 
 [assembly: WebJobsStartup(typeof(AzureUpskill.Functions.Startup))]
 namespace AzureUpskill.Functions
@@ -19,7 +19,16 @@ namespace AzureUpskill.Functions
         {
             //Register the extension
             builder.AddSwashBuckle(Assembly.GetExecutingAssembly());
-            builder.Services.AddAutoMapper(typeof(CommonMapper).Assembly);
+            builder.Services.AddAutoMapper(new[] {
+                typeof(CommonMapper).Assembly,
+                typeof(CandidateIndexMapper).Assembly
+            });
+            RegisterDomainServices(builder);
+        }
+
+        private void RegisterDomainServices(IWebJobsBuilder builder)
+        {
+            builder.Services.AddSingleton<ISearchIndexClientRegistry, CfgBasedSearchIndexClientRegistry>();
         }
     }
 }
