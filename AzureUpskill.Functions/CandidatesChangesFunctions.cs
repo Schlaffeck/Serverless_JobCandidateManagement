@@ -23,6 +23,7 @@ namespace AzureUpskill.Functions
             collectionName: Consts.CosmosDb.CandidatesContainerName,
             ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName,
             LeaseCollectionName = Consts.CosmosDb.LeasesContainerName,
+            LeaseCollectionPrefix = nameof(OnCandidateChanged),
             CreateLeaseCollectionIfNotExists = true)]IReadOnlyList<CandidateDocument> documents,
             [CosmosDB(
                 databaseName: Consts.CosmosDb.DbName,

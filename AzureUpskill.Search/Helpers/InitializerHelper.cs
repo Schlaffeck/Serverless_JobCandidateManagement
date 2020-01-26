@@ -9,7 +9,7 @@ namespace AzureUpskill.Search.Helpers
         public static void InitializeIndexIfNotExists<TIndexType>(
             this ISearchServiceClient searchServiceClient,
             string indexName)
-            where TIndexType : class, IIndexData
+            where TIndexType : class, ISearchIndexDescriptor
         {
             if(!(searchServiceClient.Indexes.Exists(indexName)))
             {

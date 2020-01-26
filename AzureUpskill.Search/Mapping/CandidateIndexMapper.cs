@@ -23,6 +23,7 @@ namespace AzureUpskill.Search.Mapping
                 .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Name));
 
             CreateMap<Candidate, CandidateIndex>()
+                .ForMember(dest => dest.EmploymentFullYears, opt => opt.MapFrom(src => src.EmploymentFullMonths / 12))
                 .ForMember(dest => dest.CategoryName, opt => opt.Ignore());
         }
     }

@@ -1,4 +1,6 @@
-﻿using Microsoft.Azure.Search;
+﻿using AzureUpskill.Models.Data;
+using Microsoft.Azure.Search;
+using Microsoft.Azure.Search.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -6,9 +8,9 @@ using System.Text;
 
 namespace AzureUpskill.Search.Models.Candidates
 {
-    public class CandidateIndex : IIndexData
+    public class CandidateIndex : ISearchIndexDescriptor<Candidate>
     {
-        public static string Name = "Candidates_AZSearch_Index";
+        public static string Name = "candidate";
 
         [System.ComponentModel.DataAnnotations.Key]
         [IsFilterable]
@@ -43,5 +45,10 @@ namespace AzureUpskill.Search.Models.Candidates
 
         [JsonIgnore]
         public string IndexName => Name;
+
+        public IEnumerable<Field> GetIndexedFields()
+        {
+            return FieldBuilder.BuildForType<CandidateIndex>();
+        }
     }
 }

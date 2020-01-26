@@ -10,6 +10,7 @@ using AzureUpskill.Search.Mapping;
 using AzureUpskill.Search.Services.Interfaces;
 using AzureUpskill.Functions.Search;
 using AzureUpskill.Functions.Search.Services;
+using Microsoft.Extensions.Configuration;
 
 [assembly: WebJobsStartup(typeof(AzureUpskill.Functions.Startup))]
 namespace AzureUpskill.Functions
@@ -24,7 +25,17 @@ namespace AzureUpskill.Functions
                 typeof(CommonMapper).Assembly,
                 typeof(CandidateIndexMapper).Assembly
             });
+            RegisterConfiguration(builder);
             RegisterDomainServices(builder);
+        }
+
+        private void RegisterConfiguration(IWebJobsBuilder webJobsBuilder)
+        {
+            var configBuilder = new ConfigurationBuilder()
+                .AddEnvironmentVariables()
+                .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true);
+            IConfiguration configuration = configBuilder.Build();
+            webJobsBuilder.Services.AddSingleton(configuration);
         }
 
         private void RegisterDomainServices(IWebJobsBuilder builder)

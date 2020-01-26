@@ -29,16 +29,17 @@ namespace AzureUpskill.Functions.Search.Services
 
         public ISearchServiceClient Client { get; }
 
-        public ISearchIndexClient GetSearchIndexClient<TIndexType>(string indexName)
-            where TIndexType : class, IIndexData
+        public ISearchIndexClient GetSearchIndexClient<TIndexed, TIndexType>(string indexName)
+            where TIndexed : class
+            where TIndexType : class, ISearchIndexDescriptor
         {
             if(!clients.ContainsKey(indexName))
             {
-                log.LogInformationEx($"Creating search index client of name '{indexName}' and type {typeof(TIndexType).FullName}");
+                log?.LogInformationEx($"Creating search index client of name '{indexName}' and type {typeof(TIndexType).FullName}");
                 this.Client.InitializeIndexIfNotExists<TIndexType>(indexName);
                 var indexClient = new SearchIndexClient(searchServiceName, indexName, new SearchCredentials(searchServiceApiKey));
                 clients.Add(indexName, indexClient);
-                log.LogInformationEx($"Search index client of name '{indexName}' created properly");
+                log?.LogInformationEx($"Search index client of name '{indexName}' created properly");
             }
 
             return clients[indexName];
@@ -49,14 +50,14 @@ namespace AzureUpskill.Functions.Search.Services
             if(clients.ContainsKey(indexName))
             {
                 clients.Remove(indexName);
-                log.LogInformationEx($"Search index client of name '{indexName}' invalidated");
+                log?.LogInformationEx($"Search index client of name '{indexName}' invalidated");
             }
         }
 
         public void InvalidateAll()
         {
             clients.Clear();
-            log.LogInformationEx($"All search index clients invalidated");
+            log?.LogInformationEx($"All search index clients invalidated");
         }
     }
 }
