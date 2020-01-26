@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureUpskill.Helpers", "Azu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureUpskill.Models", "AzureUpskill.Models\AzureUpskill.Models.csproj", "{28E7DA6B-ECF2-4281-8386-25C19A4002D9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureUpskill.Search", "AzureUpskill.Search\AzureUpskill.Search.csproj", "{C482FFDB-9E6A-4B35-871F-D21E6D689751}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureUpskill.Search", "AzureUpskill.Search\AzureUpskill.Search.csproj", "{C482FFDB-9E6A-4B35-871F-D21E6D689751}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

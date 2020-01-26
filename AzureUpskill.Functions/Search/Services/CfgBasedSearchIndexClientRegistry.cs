@@ -8,7 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 
-namespace AzureUpskill.Functions.Search
+namespace AzureUpskill.Functions.Search.Services
 {
     public class CfgBasedSearchIndexClientRegistry : ISearchIndexClientRegistry, ISearchServiceClientProvider
     {

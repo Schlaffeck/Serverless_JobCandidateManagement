@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using AzureUpskill.Search.Mapping;
 using AzureUpskill.Search.Services.Interfaces;
 using AzureUpskill.Functions.Search;
+using AzureUpskill.Functions.Search.Services;
 
 [assembly: WebJobsStartup(typeof(AzureUpskill.Functions.Startup))]
 namespace AzureUpskill.Functions
@@ -28,7 +29,8 @@ namespace AzureUpskill.Functions
 
         private void RegisterDomainServices(IWebJobsBuilder builder)
         {
-            builder.Services.AddSingleton<ISearchIndexClientRegistry, CfgBasedSearchIndexClientRegistry>();
+            builder.Services.AddScoped<ISearchIndexClientRegistry, CfgBasedSearchIndexClientRegistry>();
+            builder.Services.AddScoped<ISearchServiceClientProvider, CfgBasedSearchIndexClientRegistry>();
         }
     }
 }
