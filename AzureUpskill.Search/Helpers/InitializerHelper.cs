@@ -9,14 +9,14 @@ namespace AzureUpskill.Search.Helpers
         public static void InitializeIndexIfNotExists<TIndexType>(
             this ISearchServiceClient searchServiceClient,
             string indexName)
-            where TIndexType : class, ISearchIndexDescriptor
+            where TIndexType : class
         {
             if(!(searchServiceClient.Indexes.Exists(indexName)))
             {
                 var indexDefinition = new Index
                 {
                     Name = indexName,
-                    Fields = FieldBuilder.BuildForType<TIndexType>()
+                    Fields = FieldBuilder.BuildForType<TIndexType>(),
                 };
                 var index = searchServiceClient.Indexes.Create(indexDefinition);
             }

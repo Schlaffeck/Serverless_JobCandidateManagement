@@ -8,9 +8,9 @@ using System.Text;
 
 namespace AzureUpskill.Search.Models.Candidates
 {
-    public class CandidateIndex : ISearchIndexDescriptor<Candidate>
+    public class CandidateIndex : ISearchIndexDescriptor
     {
-        public static string Name = "candidate";
+        public static string Name = "candidates";
 
         [System.ComponentModel.DataAnnotations.Key]
         [IsFilterable]

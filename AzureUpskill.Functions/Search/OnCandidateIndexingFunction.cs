@@ -56,8 +56,9 @@ namespace AzureUpskill.Functions.Search
                 log.LogInformationEx($"{newOrChangedCandidates.Count} new or changed candidates");
                 if (newOrChangedCandidates.Count > 0)
                 {
-                    var searchClientIndex = this.searchIndexClientRegistry.GetSearchIndexClient<CandidateIndex>(CandidateIndex.Name);
-                    var batch = IndexBatch.MergeOrUpload(newOrChangedCandidates);
+                    var searchClientIndex = this.searchIndexClientRegistry.GetSearchIndexClient<Candidate>(CandidateIndex.Name);
+                    var batch = IndexBatch.MergeOrUpload<Candidate>(
+                        this.mapper.Map<IEnumerable<Candidate>>(newOrChangedCandidates));
                     var indexResult = await searchClientIndex.Documents.IndexAsync(batch);
                     log.LogInformationEx("new or changed candidates indexed");
                 }
@@ -67,7 +68,8 @@ namespace AzureUpskill.Functions.Search
                 log.LogInformationEx($"{newOrChangedCandidates.Count} deleted candidates");
                 if (deletedCandidates.Count > 0)
                 {
-                    var deletedBatch = IndexBatch.Delete(deletedCandidates);
+                    var deletedBatch = IndexBatch.Delete<Candidate>(
+                        this.mapper.Map<IEnumerable<Candidate>>(deletedCandidates));
                     log.LogInformation("Deleted candidates removed from index");
                 }
 

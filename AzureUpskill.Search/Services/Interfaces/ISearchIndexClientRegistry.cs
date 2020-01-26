@@ -5,9 +5,8 @@ namespace AzureUpskill.Search.Services.Interfaces
 {
     public interface ISearchIndexClientRegistry
     {
-        ISearchIndexClient GetSearchIndexClient<TIndexed, TIndexType>(string indexName)
-            where TIndexed : class
-            where TIndexType : class, ISearchIndexDescriptor;
+        ISearchIndexClient GetSearchIndexClient<TIndexType>(string indexName)
+            where TIndexType : class;
 
         void InvalidateAll();
 

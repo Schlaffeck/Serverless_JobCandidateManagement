@@ -29,9 +29,8 @@ namespace AzureUpskill.Functions.Search.Services
 
         public ISearchServiceClient Client { get; }
 
-        public ISearchIndexClient GetSearchIndexClient<TIndexed, TIndexType>(string indexName)
-            where TIndexed : class
-            where TIndexType : class, ISearchIndexDescriptor
+        public ISearchIndexClient GetSearchIndexClient<TIndexType>(string indexName)
+            where TIndexType : class
         {
             if(!clients.ContainsKey(indexName))
             {

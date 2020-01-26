@@ -11,6 +11,7 @@ namespace AzureUpskill.Models.Data.Mapping
         {
             CreateMap<Candidate, Candidate>();
             CreateMap<CandidateDocument, CandidateDocument>();
+            CreateMap<CandidateDocument, Candidate>();
 
             CreateMap<Category, Candidate>()
                 .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.CategoryId))
