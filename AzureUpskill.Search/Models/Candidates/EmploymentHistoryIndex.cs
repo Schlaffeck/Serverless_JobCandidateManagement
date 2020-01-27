@@ -1,4 +1,5 @@
-﻿using Microsoft.Azure.Search;
+﻿using System;
+using Microsoft.Azure.Search;
 
 namespace AzureUpskill.Search.Models.Candidates
 {
@@ -6,5 +7,13 @@ namespace AzureUpskill.Search.Models.Candidates
     {
         [IsFilterable]
         public string Company { get; set; }
+
+        public string Position { get; set; }
+
+        public string Description { get; set; }
+
+        public DateTime StartDate { get; set; }
+
+        public DateTime? EndDate { get; set; }
     }
 }

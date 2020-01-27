@@ -10,7 +10,7 @@ namespace AzureUpskill.Search.Models.Candidates
 {
     public class CandidateIndex : ISearchIndexDescriptor
     {
-        public static string Name = "candidates";
+        public static string Name = "azups001-search-candidates-index";
 
         [System.ComponentModel.DataAnnotations.Key]
         [IsFilterable]
@@ -29,6 +29,8 @@ namespace AzureUpskill.Search.Models.Candidates
         public string LastName { get; set; }
 
         public AddressIndex Address { get; set; }
+
+        public ContactDetailsIndex ContactDetails { get; set; }
 
         [IsFilterable, IsSortable]
         public int EmploymentFullMonths { get; set; }
