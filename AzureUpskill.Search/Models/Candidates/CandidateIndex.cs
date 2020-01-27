@@ -1,16 +1,13 @@
-﻿using AzureUpskill.Models.Data;
-using Microsoft.Azure.Search;
+﻿using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
 using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace AzureUpskill.Search.Models.Candidates
 {
     public class CandidateIndex : ISearchIndexDescriptor
     {
-        public static string Name = "azups001-search-candidates-index";
+        public const string IndexNameConst = "azups001-search-candidates-index";
 
         [System.ComponentModel.DataAnnotations.Key]
         [IsFilterable]
@@ -46,7 +43,7 @@ namespace AzureUpskill.Search.Models.Candidates
         public IEnumerable<EducationHistoryIndex> EducationHistory { get; set; }
 
         [JsonIgnore]
-        public string IndexName => Name;
+        public string IndexName => IndexNameConst;
 
         public IEnumerable<Field> GetIndexedFields()
         {
