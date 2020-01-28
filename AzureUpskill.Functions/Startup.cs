@@ -10,7 +10,10 @@ using AzureUpskill.Search.Mapping;
 using AzureUpskill.Search.Services.Interfaces;
 using AzureUpskill.Functions.Search;
 using AzureUpskill.Functions.Search.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters.Json.Internal;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 [assembly: WebJobsStartup(typeof(AzureUpskill.Functions.Startup))]
 namespace AzureUpskill.Functions
@@ -19,6 +22,8 @@ namespace AzureUpskill.Functions
     {
         public void Configure(IWebJobsBuilder builder)
         {
+            // added to fix deserializing json collections in body
+            builder.Services.AddTransient<IConfigureOptions<MvcOptions>, MvcJsonMvcOptionsSetup>();
             //Register the extension
             builder.AddSwashBuckle(Assembly.GetExecutingAssembly());
             builder.Services.AddAutoMapper(new[] {
