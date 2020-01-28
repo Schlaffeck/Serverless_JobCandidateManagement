@@ -55,7 +55,7 @@ namespace AzureUpskill.Functions.Search
                 log.LogInformationEx($"{newOrChangedCategories.Count} new or changed {collectionName}");
                 if (newOrChangedCategories.Count > 0)
                 {
-                    var searchClientIndex = this.searchIndexClientRegistry.GetSearchIndexClient<CategoryIndex>(CandidateIndex.IndexNameConst);
+                    var searchClientIndex = this.searchIndexClientRegistry.GetSearchIndexClient<CategoryIndex>(CategoryIndex.IndexNameConst);
                     var batch = IndexBatch.MergeOrUpload(
                         this.mapper.Map<IEnumerable<CategoryIndex>>(newOrChangedCategories));
                     var indexResult = await searchClientIndex.Documents.IndexAsync(batch);
