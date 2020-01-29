@@ -1,0 +1,43 @@
+{
+    "FirstName": "Marian",
+    "LastName": "Kowalski",
+    "Address": {
+        "Country": "PL",
+        "City": "Wrocław",
+        "AddressLine": "Ul. Bagietowa 7",
+        "ZipCode": "65432"
+    },
+    "ContactDetails": {
+        "PhoneNumber": "+48345685321",
+        "EMail": "marjan@kowalski.ty"
+    },
+    "CvDocumentUri": null,
+    "PictureUri": null,
+    "EducationLevel": "Engineer",
+    "EducationHistory": [
+        {
+            "Description": "Computer Science",
+            "Institution": "University of Wroclaw",
+            "Degree": "Engineer",
+            "Certificate": null,
+            "StartDate": "2016-10-01T00:00:00",
+            "EndDate": "2019-01-18T00:00:00"
+        }
+    ],
+    "EmploymentHistory": [
+        {
+            "Company": "IT Tech S.A.",
+            "Position": "Developer",
+            "Description": null,
+            "StartDate": "2019-08-01T00:00:00",
+            "EndDate": null
+        }
+    ],
+    "Skills": [
+        {
+            "Name": "English",
+            "Level": "B2",
+            "Description": null
+        }
+    ]
+}

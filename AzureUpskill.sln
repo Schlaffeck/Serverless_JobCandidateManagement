@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureUpskill.Helpers", "Azu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureUpskill.Models", "AzureUpskill.Models\AzureUpskill.Models.csproj", "{28E7DA6B-ECF2-4281-8386-25C19A4002D9}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureUpskill.Search", "AzureUpskill.Search\AzureUpskill.Search.csproj", "{C482FFDB-9E6A-4B35-871F-D21E6D689751}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{28E7DA6B-ECF2-4281-8386-25C19A4002D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{28E7DA6B-ECF2-4281-8386-25C19A4002D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{28E7DA6B-ECF2-4281-8386-25C19A4002D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C482FFDB-9E6A-4B35-871F-D21E6D689751}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C482FFDB-9E6A-4B35-871F-D21E6D689751}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C482FFDB-9E6A-4B35-871F-D21E6D689751}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C482FFDB-9E6A-4B35-871F-D21E6D689751}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
