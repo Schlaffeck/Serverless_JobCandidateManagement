@@ -8,11 +8,10 @@ using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using AzureUpskill.Search.Mapping;
 using AzureUpskill.Search.Services.Interfaces;
-using AzureUpskill.Functions.Search;
-using AzureUpskill.Functions.Search.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters.Json.Internal;
 using Microsoft.Extensions.Configuration;
+using AzureUpskill.Functions.Services.Search;
 using Microsoft.Extensions.Options;
 
 [assembly: WebJobsStartup(typeof(AzureUpskill.Functions.Startup))]
@@ -28,7 +27,8 @@ namespace AzureUpskill.Functions
             builder.AddSwashBuckle(Assembly.GetExecutingAssembly());
             builder.Services.AddAutoMapper(new[] {
                 typeof(CommonMapper).Assembly,
-                typeof(CandidateIndexMapper).Assembly
+                typeof(CandidateIndexMapper).Assembly,
+                typeof(Startup).Assembly
             });
             RegisterConfiguration(builder);
             RegisterDomainServices(builder);

@@ -4,7 +4,7 @@ using Microsoft.Azure.Documents.Client;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 
-namespace AzureUpskill.Functions.CosmosDb.StoredProcedures
+namespace AzureUpskill.Functions.Helpers.CosmosDb.StoredProcedures
 {
     public static class CommonProcedures
     {
@@ -18,7 +18,7 @@ namespace AzureUpskill.Functions.CosmosDb.StoredProcedures
                 var result = await categoriesClient.ExecuteStoredProcedureAsync<dynamic>(
                     spUri, new RequestOptions { PartitionKey = new PartitionKey(categoryId) },
                     categoryId,
-                    changeCountValue );
+                    changeCountValue);
                 if (result.StatusCode.IsSuccess())
                 {
                     logger?.LogInformationEx("SP run succesfully");

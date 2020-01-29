@@ -15,7 +15,6 @@ using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents;
 using AzureUpskill.Models.UpdateCandidate;
 using AzureUpskill.Models.UpdateCandidate.Validation;
-using AzureUpskill.Functions.CosmosDb;
 using AzureUpskill.Models.Data.Base;
 using AzureFunctions.Extensions.Swashbuckle.Attribute;
 using System.Net;
@@ -26,6 +25,7 @@ using System.Threading;
 using Newtonsoft.Json;
 using AzureUpskill.Core;
 using static AzureUpskill.Functions.Helpers.DurableFunctionsHelper;
+using AzureUpskill.Functions.Helpers.CosmosDb;
 
 namespace AzureUpskill.Functions
 {

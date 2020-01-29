@@ -3,7 +3,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System;
 
-namespace AzureUpskill.Functions.Storage
+namespace AzureUpskill.Functions.Helpers.Storage
 {
     public static class CloudBlobHelper
     {

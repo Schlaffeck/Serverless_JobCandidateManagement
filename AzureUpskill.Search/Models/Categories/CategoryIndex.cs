@@ -23,7 +23,7 @@ namespace AzureUpskill.Search.Models.Categories
 
         [JsonIgnore] public string IndexName => IndexNameConst;
 
-        public IEnumerable<Field> GetIndexedFields()
+        public static IEnumerable<Field> GetIndexedFields()
         {
             return FieldBuilder.BuildForType<CategoryIndex>();
         }

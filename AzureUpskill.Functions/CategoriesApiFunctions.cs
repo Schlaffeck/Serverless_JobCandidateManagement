@@ -20,10 +20,10 @@ using AzureUpskill.Models.UpdateCategory.Validation;
 using AzureUpskill.Models.DeleteCategory.Validation;
 using AzureUpskill.Helpers;
 using AzureUpskill.Functions.Filters;
-using AzureUpskill.Functions.CosmosDb;
 using AutoMapper;
 using AzureFunctions.Extensions.Swashbuckle.Attribute;
 using System.Net;
+using AzureUpskill.Functions.Helpers.CosmosDb;
 
 namespace AzureUpskill.Functions
 {
