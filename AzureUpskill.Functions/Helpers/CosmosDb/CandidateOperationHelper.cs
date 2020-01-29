@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AzureUpskill.Functions.CosmosDb
+namespace AzureUpskill.Functions.Helpers.CosmosDb
 {
     public static class CandidateOperationHelper
     {

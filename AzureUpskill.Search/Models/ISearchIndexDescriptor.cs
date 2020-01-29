@@ -10,7 +10,5 @@ namespace AzureUpskill.Search.Models
     {
         [JsonIgnore]
         string IndexName { get; }
-
-        IEnumerable<Field> GetIndexedFields();
     }
 }

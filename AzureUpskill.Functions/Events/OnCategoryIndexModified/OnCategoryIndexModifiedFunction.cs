@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,23 +5,24 @@ using AutoMapper;
 using AzureUpskill.Helpers;
 using AzureUpskill.Models.Data;
 using AzureUpskill.Search.Models.Candidates;
+using AzureUpskill.Search.Models.Categories;
 using AzureUpskill.Search.Services.Interfaces;
-using Microsoft.Azure.Documents;
 using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
 using Microsoft.Rest.Azure;
 
-namespace AzureUpskill.Functions.Search
+namespace AzureUpskill.Functions.Events.OnCategoryIndexModified
 {
-    public class OnCandidateIndexingFunction
+    public class OnCategoryIndexModifiedFunction
     {
+        public const string Name = "OnCategoryIndexModified";
+
         private readonly IMapper mapper;
         private readonly ISearchIndexClientRegistry searchIndexClientRegistry;
 
-        public OnCandidateIndexingFunction(
+        public OnCategoryIndexModifiedFunction(
             IMapper mapper,
             ISearchIndexClientRegistry searchIndexClientRegistry)
         {
@@ -30,47 +30,46 @@ namespace AzureUpskill.Functions.Search
             this.searchIndexClientRegistry = searchIndexClientRegistry;
         }
 
-        [FunctionName(Names.OnCandidateIndexingFunctionName)]
-        public async Task OnCandidateAdded_Indexing_Run([CosmosDBTrigger(
+        [FunctionName(Name)]
+        public async Task OnCategoryModified_Indexing_Run([CosmosDBTrigger(
             databaseName: Consts.CosmosDb.DbName,
-            collectionName: Consts.CosmosDb.CandidatesContainerName,
+            collectionName: Consts.CosmosDb.CategoriesContainerName,
             ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName,
             LeaseCollectionName = Consts.CosmosDb.LeasesContainerName,
-            LeaseCollectionPrefix = Names.OnCandidateIndexingFunctionName,
-            CreateLeaseCollectionIfNotExists = true)]IReadOnlyList<CandidateDocument> input, ILogger log)
+            LeaseCollectionPrefix = Name,
+            CreateLeaseCollectionIfNotExists = true)]IReadOnlyList<CategoryDocument> input, ILogger log)
         {
             if (input != null && input.Count > 0)
             {
-                log.LogInformationEx("Documents modified " + input.Count);
                 await RunIndexingAsync(input, log);
             }
         }
 
-        private async Task RunIndexingAsync(IEnumerable<CandidateDocument> candidateDocuments, ILogger log)
+        private async Task RunIndexingAsync(IEnumerable<CategoryDocument> categoryDocuments, ILogger log)
         {
-            var collectionName = "candidates";
+            var collectionName = "categories";
             try
             {
                 log.LogInformationEx($"Start indexing {collectionName}");
-                var newOrChangedCandidates = candidateDocuments.Where(c => c.Status != Models.Data.Base.DocumentStatus.Deleted)
+                var newOrChangedCategories = categoryDocuments.Where(c => c.Status != Models.Data.Base.DocumentStatus.Deleted)
                     .ToList();
-                log.LogInformationEx($"{newOrChangedCandidates.Count} new or changed {collectionName}");
-                if (newOrChangedCandidates.Count > 0)
+                log.LogInformationEx($"{newOrChangedCategories.Count} new or changed {collectionName}");
+                if (newOrChangedCategories.Count > 0)
                 {
-                    var searchClientIndex = this.searchIndexClientRegistry.GetSearchIndexClient<CandidateIndex>(CandidateIndex.IndexNameConst);
+                    var searchClientIndex = searchIndexClientRegistry.GetSearchIndexClient<CategoryIndex>(CategoryIndex.IndexNameConst);
                     var batch = IndexBatch.MergeOrUpload(
-                        this.mapper.Map<IEnumerable<CandidateIndex>>(newOrChangedCandidates));
+                        mapper.Map<IEnumerable<CategoryIndex>>(newOrChangedCategories));
                     var indexResult = await searchClientIndex.Documents.IndexAsync(batch);
                     log.LogInformationEx($"New or changed {collectionName} indexed");
                 }
 
-                var deletedCandidates = candidateDocuments.Where(c => c.Status == Models.Data.Base.DocumentStatus.Deleted)
+                var deletedCategories = categoryDocuments.Where(c => c.Status == Models.Data.Base.DocumentStatus.Deleted)
                     .ToList();
-                log.LogInformationEx($"{newOrChangedCandidates.Count} deleted {collectionName}");
-                if (deletedCandidates.Count > 0)
+                log.LogInformationEx($"{newOrChangedCategories.Count} deleted {collectionName}");
+                if (deletedCategories.Count > 0)
                 {
                     var deletedBatch = IndexBatch.Delete(
-                        this.mapper.Map<IEnumerable<CandidateIndex>>(deletedCandidates));
+                        mapper.Map<IEnumerable<CategoryIndex>>(deletedCategories));
                     log.LogInformation($"Deleted {collectionName} removed from index");
                 }
 
@@ -88,11 +87,6 @@ namespace AzureUpskill.Functions.Search
             {
                 log.LogErrorEx(cloudException, "Indexing failed");
             }
-        }
-
-        public static class Names
-        {
-            public const string OnCandidateIndexingFunctionName = "OnCandidateIndexingFunction";
         }
     }
 }

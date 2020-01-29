@@ -5,8 +5,11 @@ using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using System;
 using System.IO;
+using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace AzureUpskill.Helpers
 {
@@ -113,5 +116,29 @@ namespace AzureUpskill.Helpers
                 return $"{httpResponse.StatusCode} - {streamReader.ReadToEnd()}"; 
             }
         }
+
+        public static T GetObjectFromQueryString<T>(this HttpRequest request)
+            where T : class, new()
+        {
+            var dict = HttpUtility.ParseQueryString(request.QueryString.ToString());
+            string json = JsonConvert.SerializeObject(dict.Cast<string>().ToDictionary(k => k, v => dict[v]));
+            var respObj = JsonConvert.DeserializeObject<T>(json);
+            return respObj;
+        }
+
+        public static string ToQueryStringNoValues(this object obj)
+        {
+            var qs = new StringBuilder("?");
+
+            var objType = obj.GetType();
+
+            foreach(var p in objType.GetProperties())
+            {
+                    qs.Append($"{Uri.EscapeDataString(p.Name)}={{{p.Name}}}&");
+            }
+
+            return qs.ToString();
+        }
+
     }
 }

@@ -8,7 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 
-namespace AzureUpskill.Functions.Search.Services
+namespace AzureUpskill.Functions.Services.Search
 {
     public class CfgBasedSearchIndexClientRegistry : ISearchIndexClientRegistry, ISearchServiceClientProvider
     {
@@ -23,7 +23,7 @@ namespace AzureUpskill.Functions.Search.Services
         {
             searchServiceName = configuration[AzureUpskill.Search.Constants.SearchServiceNameConfigKey];
             searchServiceApiKey = configuration[AzureUpskill.Search.Constants.SearchServiceQueryApiKeyConfigKey];
-            this.Client = new SearchServiceClient(searchServiceName, new SearchCredentials(searchServiceApiKey));
+            Client = new SearchServiceClient(searchServiceName, new SearchCredentials(searchServiceApiKey));
             this.log = log;
         }
 
@@ -32,10 +32,10 @@ namespace AzureUpskill.Functions.Search.Services
         public ISearchIndexClient GetSearchIndexClient<TIndexType>(string indexName)
             where TIndexType : class
         {
-            if(!clients.ContainsKey(indexName))
+            if (!clients.ContainsKey(indexName))
             {
                 log?.LogInformationEx($"Creating search index client of name '{indexName}' and type {typeof(TIndexType).FullName}");
-                this.Client.InitializeIndexIfNotExists<TIndexType>(indexName);
+                Client.InitializeIndexIfNotExists<TIndexType>(indexName);
                 var indexClient = new SearchIndexClient(searchServiceName, indexName, new SearchCredentials(searchServiceApiKey));
                 clients.Add(indexName, indexClient);
                 log?.LogInformationEx($"Search index client of name '{indexName}' created properly");
@@ -46,7 +46,7 @@ namespace AzureUpskill.Functions.Search.Services
 
         public void Invalidate(string indexName)
         {
-            if(clients.ContainsKey(indexName))
+            if (clients.ContainsKey(indexName))
             {
                 clients.Remove(indexName);
                 log?.LogInformationEx($"Search index client of name '{indexName}' invalidated");

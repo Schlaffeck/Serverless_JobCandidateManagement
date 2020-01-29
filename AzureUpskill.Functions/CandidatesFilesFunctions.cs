@@ -1,6 +1,6 @@
 ﻿using AzureFunctions.Extensions.Swashbuckle.Attribute;
 using AzureUpskill.Functions.Filters;
-using AzureUpskill.Functions.Storage;
+using AzureUpskill.Functions.Helpers.Storage;
 using AzureUpskill.Models.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

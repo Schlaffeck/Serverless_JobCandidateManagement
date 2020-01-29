@@ -6,7 +6,7 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-namespace AzureUpskill.Functions.CosmosDb
+namespace AzureUpskill.Functions.Helpers.CosmosDb
 {
     public static class CosmosDbExecutionHelper
     {

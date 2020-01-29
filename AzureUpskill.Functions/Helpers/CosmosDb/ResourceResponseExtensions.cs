@@ -2,7 +2,7 @@
 using Microsoft.Azure.Documents.Client;
 using System.IO;
 
-namespace AzureUpskill.Functions.CosmosDb
+namespace AzureUpskill.Functions.Helpers.CosmosDb
 {
     public static class ResourceResponseExtensions
     {

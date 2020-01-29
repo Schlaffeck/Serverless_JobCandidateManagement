@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AzureUpskill.Functions.CosmosDb;
-using AzureUpskill.Functions.CosmosDb.StoredProcedures;
+using AzureUpskill.Functions.Helpers.CosmosDb;
+using AzureUpskill.Functions.Helpers.CosmosDb.StoredProcedures;
 using AzureUpskill.Helpers;
 using AzureUpskill.Models.Data;
 using AzureUpskill.Models.Data.Base;
