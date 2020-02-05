@@ -117,6 +117,14 @@ namespace AzureUpskill.Helpers
             }
         }
 
+        public static string ReadStringToEnd(this Stream responseStream)
+        {
+            using (var streamReader = new StreamReader(responseStream))
+            {
+                return $"{streamReader.ReadToEnd()}";
+            }
+        }
+
         public static T GetObjectFromQueryString<T>(this HttpRequest request)
             where T : class, new()
         {

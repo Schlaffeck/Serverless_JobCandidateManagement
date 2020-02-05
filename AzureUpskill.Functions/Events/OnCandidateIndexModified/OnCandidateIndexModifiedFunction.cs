@@ -6,6 +6,7 @@ using AutoMapper;
 using AzureUpskill.Functions.Helpers.CosmosDb;
 using AzureUpskill.Helpers;
 using AzureUpskill.Models.Data;
+using AzureUpskill.Models.Helpers;
 using AzureUpskill.Search.Models.Candidates;
 using AzureUpskill.Search.Services.Interfaces;
 using Microsoft.Azure.Documents;
@@ -42,9 +43,9 @@ namespace AzureUpskill.Functions.Events.OnCandidateIndexModified
             LeaseCollectionName = Consts.CosmosDb.LeasesContainerName,
             LeaseCollectionPrefix = Name,
             CreateLeaseCollectionIfNotExists = true)]IReadOnlyList<CandidateDocument> input,
-             [CosmosDB(
+            [CosmosDB(
                 databaseName: Consts.CosmosDb.DbName,
-                collectionName: Consts.CosmosDb.CategoriesContainerName,
+                collectionName: Consts.CosmosDb.CandidatesContainerName,
                 ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName)] DocumentClient categoriesDocumentClient,
             ILogger log)
         {
@@ -54,7 +55,10 @@ namespace AzureUpskill.Functions.Events.OnCandidateIndexModified
             }
         }
 
-        private async Task RunIndexingAsync(IEnumerable<CandidateDocument> candidateDocuments, DocumentClient categoriesDocumentClient, ILogger log)
+        private async Task RunIndexingAsync(
+            IEnumerable<CandidateDocument> candidateDocuments,
+            DocumentClient categoriesDocumentClient,
+            ILogger log)
         {
             var collectionName = "candidates";
             try
@@ -70,25 +74,15 @@ namespace AzureUpskill.Functions.Events.OnCandidateIndexModified
                     foreach (var candidateDocument in newOrChangedCandidates)
                     {
                         var candidateIndex = this.mapper.Map<CandidateIndex>(candidateDocument);
-                        if (candidateDocument.Status == Models.Data.Base.DocumentStatus.Moved
-                            || candidateDocument.Status == Models.Data.Base.DocumentStatus.New)
+                        if(candidateDocument.IsNewOrMoved())
                         {
-                            var categoryLink = UriFactory.CreateDocumentUri(Consts.CosmosDb.DbName, candidateDocument.CategoryId, candidateDocument.CategoryId);
-                            var categoryResponse = await categoriesDocumentClient.ReadDocumentAsync<CategoryDocument>(
-                                categoryLink,
-                                new RequestOptions
+                            var categoryReadResult = await categoriesDocumentClient.ReadDocumentAsync<Category>(
+                                UriFactory.CreateDocumentUri(Consts.CosmosDb.DbName, Consts.CosmosDb.CategoriesContainerName, candidateDocument.CategoryId)
+                                , new RequestOptions
                                 {
                                     PartitionKey = new PartitionKey(candidateDocument.PartitionKey)
                                 });
-
-                            if (categoryResponse.StatusCode.IsSuccess())
-                            {
-                                this.mapper.Map(categoryResponse.Document, candidateIndex);
-                            }
-                            else
-                            {
-                                log.LogWarningEx($"Could not read category by id '{candidateDocument.CategoryId}': {categoryResponse.ToErrorString()}");
-                            }
+                            this.mapper.Map(categoryReadResult.Document, candidateIndex);
                         }
                         indexesList.Add(candidateIndex);
                     }

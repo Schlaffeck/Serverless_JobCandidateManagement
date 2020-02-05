@@ -12,20 +12,20 @@ using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 
-namespace AzureUpskill.Functions.Events.OnCandidateDocumentModified
+namespace AzureUpskill.Functions.Events.OnCandidateDocumentDeleted
 {
-    public class OnCandidateDocumentModifiedFunction
+    public class OnCandidateDocumentDeletedFunction
     {
-        public const string Name = nameof(OnCandidateDocumentModified);
+        public const string Name = nameof(OnCandidateDocumentDeleted);
 
         [FunctionName(Name)]
-        public async Task OnCandidateDocumentModified([CosmosDBTrigger(
+        public async Task OnCandidateDocumentDeleted([CosmosDBTrigger(
             databaseName: Consts.CosmosDb.DbName,
             collectionName: Consts.CosmosDb.CandidatesContainerName,
             ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName,
             LeaseCollectionName = Consts.CosmosDb.LeasesContainerName,
-            LeaseCollectionPrefix = nameof(OnCandidateDocumentModified),
-            CreateLeaseCollectionIfNotExists = true)]IReadOnlyList<CandidateDocument> documents,
+            LeaseCollectionPrefix = nameof(OnCandidateDocumentDeleted),
+            CreateLeaseCollectionIfNotExists = true)]IReadOnlyList<CandidateDocument> candidates,
             [CosmosDB(
                 databaseName: Consts.CosmosDb.DbName,
                 collectionName: Consts.CosmosDb.CategoriesContainerName,
@@ -36,38 +36,19 @@ namespace AzureUpskill.Functions.Events.OnCandidateDocumentModified
                 ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName)] DocumentClient candidatesDocumentClient,
             ILogger log)
         {
-            log.LogInformationEx($"{documents.Count()} documents in change log");
-            await ProcessingCandidateDocumentsAsync(documents, categoriesDocumentClient, candidatesDocumentClient, log);
-        }
-
-        private async Task ProcessingCandidateDocumentsAsync(IReadOnlyList<CandidateDocument> candidates, DocumentClient categoriesDocumentClient, DocumentClient candidatesDocumentClient, ILogger log)
-        {
-            log.LogInformationEx($"Processing {candidates.Count} documents of type '{Candidate.TypeName}'");
-            foreach (var candidate in candidates)
+            var deletedCandidates = candidates.Where(c => c.Status == DocumentStatus.Deleted).ToList();
+            if (deletedCandidates.Count == 0)
             {
-                if (candidate.IsNew() || candidate.Status == DocumentStatus.Moved)
-                {
-                    log.LogInformationEx($"{candidate.Type} ({candidate.Id}) created in category {candidate.CategoryId}");
-                    await ProcessNewCandidate(candidate, categoriesDocumentClient, log);
-                }
-                else if (candidate.Status == DocumentStatus.Deleted)
-                {
-                    log.LogInformationEx($"{candidate.Type} ({candidate.Id}) marked for deletion from category {candidate.CategoryId}");
-                    await ProcessCandidateMarkedForDeletion(candidate, categoriesDocumentClient, candidatesDocumentClient, log);
-                }
+                log.LogInformationEx($"No deleted docuuments of type {Candidate.TypeName}");
+                await Task.CompletedTask;
             }
-        }
 
-        private async Task ProcessNewCandidate(
-            CandidateDocument candidate,
-            DocumentClient categoriesDocumentClient,
-            ILogger log)
-        {
-            await CommonProcedures.RunChangeCandidateCountStoredProcedureAsync(
-                        categoriesDocumentClient,
-                        candidate.CategoryId,
-                        1,
-                        log);
+            log.LogInformationEx($"Processing {deletedCandidates.Count} deleted documents of type '{Candidate.TypeName}'");
+            foreach (var candidate in deletedCandidates)
+            {
+                log.LogInformationEx($"{candidate.Type} ({candidate.Id}) marked for deletion from category {candidate.CategoryId}");
+                await ProcessCandidateMarkedForDeletion(candidate, categoriesDocumentClient, candidatesDocumentClient, log);
+            }
         }
 
         private async Task ProcessCandidateMarkedForDeletion(

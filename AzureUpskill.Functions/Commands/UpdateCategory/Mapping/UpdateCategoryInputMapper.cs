@@ -14,7 +14,8 @@ namespace AzureUpskill.Functions.Commands.UpdateCategory.Mapping
             CreateMap<UpdateCategoryInput, Category>()
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTimeOffset.Now))
-                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => DocumentStatus.Updated));
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => DocumentStatus.Updated))
+                .ForMemberMapWithUpdatedChangedProperty(dest => dest.Name, src => src.Name);
         }
     }
 }

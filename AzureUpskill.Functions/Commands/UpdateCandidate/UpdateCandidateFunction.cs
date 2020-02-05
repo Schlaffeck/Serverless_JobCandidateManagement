@@ -42,7 +42,6 @@ namespace AzureUpskill.Functions.Commands.UpdateCandidate
             [RequestBodyType(typeof(UpdateCandidateInput), "Update candidate model")]
                 UpdateCandidateInput req,
             [DurableClient, SwaggerIgnore] IDurableOrchestrationClient durableOrchestrationClient,
-            ExecutionContext functionExecutionContext,
             [CosmosDB(
                 databaseName: Consts.CosmosDb.DbName,
                 collectionName: Consts.CosmosDb.CandidatesContainerName,

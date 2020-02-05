@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace AzureUpskill.Models.Data
 {
-    public class Category : DocumentStatusInfoBase
+    public class Category : DocumentWithChangesHistoryBase
     {
         public const string TypeName = nameof(Category);
 
