@@ -23,5 +23,11 @@
             public const string CandidatesIndexedQueueName = "CandidatesIndexedQueue";
             public const string ConnectionStringName = "QueuesStorageConnection";
         }
+
+        public static class Notifications 
+        {
+            public const string SignalRConnectionStringName = "SignalRConnection";
+            public const string CandidateCreatedNotificationHubName = "CandidateCreatedHub";
+        }
     }
 }
