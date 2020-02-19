@@ -74,8 +74,7 @@ namespace AzureUpskill.Functions.Events.OnCategoryDocumentNameChanged
             {
                 log.LogInformationEx($"Reading candidates collection from category {category.Name} ({category.Id})");
                 var candidatesInCategoryCollectionUrl = UriFactory.CreateDocumentCollectionUri(Consts.CosmosDb.DbName, Consts.CosmosDb.CandidatesContainerName);
-                var candidatesInCategoryQuery = candidatesDocumentClient.CreateDocumentQuery<CandidateDocument>(
-                    candidatesInCategoryCollectionUrl);
+                var candidatesInCategoryQuery = candidatesDocumentClient.QueryCandidatesInCategory<CandidateDocument>(category.Id);
 
                 var changedCandidateIndexes = new List<CandidateIndex>();
                 foreach (var candidate in candidatesInCategoryQuery)

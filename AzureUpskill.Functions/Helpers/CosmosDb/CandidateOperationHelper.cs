@@ -4,6 +4,7 @@ using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,6 +20,17 @@ namespace AzureUpskill.Functions.Helpers.CosmosDb
             {
                 PartitionKey = new PartitionKey(document.PartitionKey)
             });
+        }
+
+        internal static IQueryable<TCandidate> QueryCandidatesInCategory<TCandidate>(this DocumentClient documentClient, string categoryId)
+            where TCandidate : Candidate
+        {
+            var collectionUri = UriFactory.CreateDocumentCollectionUri(Consts.CosmosDb.DbName, Consts.CosmosDb.CandidatesContainerName);
+            var collectionResult = documentClient.CreateDocumentQuery<TCandidate>(
+                collectionUri,
+                $"select * from Candidates c where c.CategoryId == '{categoryId}'");
+
+            return collectionResult;
         }
     }
 }
