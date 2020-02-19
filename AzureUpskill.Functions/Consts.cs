@@ -17,5 +17,11 @@
             public const string CandidatesDocumentsBlobContainerName = "candidates-documents";
             public const string CandidatesPicturesBlobContainerName = "candidates-pictures";
         }
+
+        public static class Queues
+        {
+            public const string CandidatesIndexedQueueName = "CandidatesIndexedQueue";
+            public const string ConnectionStringName = "QueuesStorageConnection";
+        }
     }
 }

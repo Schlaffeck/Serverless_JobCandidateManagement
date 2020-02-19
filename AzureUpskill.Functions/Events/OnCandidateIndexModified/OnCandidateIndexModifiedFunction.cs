@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using AzureUpskill.Functions.Events.OnCandidateIndexModified.Models;
 using AzureUpskill.Functions.Helpers.CosmosDb;
 using AzureUpskill.Helpers;
 using AzureUpskill.Models.Data;
+using AzureUpskill.Models.Data.Base;
 using AzureUpskill.Models.Helpers;
 using AzureUpskill.Search.Models.Candidates;
 using AzureUpskill.Search.Services.Interfaces;
@@ -17,6 +19,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
 using Microsoft.Rest.Azure;
+using Newtonsoft.Json;
 
 namespace AzureUpskill.Functions.Events.OnCandidateIndexModified
 {
@@ -47,24 +50,27 @@ namespace AzureUpskill.Functions.Events.OnCandidateIndexModified
                 databaseName: Consts.CosmosDb.DbName,
                 collectionName: Consts.CosmosDb.CandidatesContainerName,
                 ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName)] DocumentClient categoriesDocumentClient,
+            [Queue(Consts.Queues.CandidatesIndexedQueueName,
+                Connection = Consts.Queues.ConnectionStringName)] IAsyncCollector<string> outputQueueMessages,
             ILogger log)
         {
             if (input != null && input.Count > 0)
             {
-                await RunIndexingAsync(input, categoriesDocumentClient, log);
+                await RunIndexingAsync(input, categoriesDocumentClient, outputQueueMessages, log);
             }
         }
 
         private async Task RunIndexingAsync(
             IEnumerable<CandidateDocument> candidateDocuments,
             DocumentClient categoriesDocumentClient,
+            IAsyncCollector<string> outputQueueMessages,
             ILogger log)
         {
             var collectionName = "candidates";
             try
             {
                 log.LogInformationEx($"Start indexing {collectionName}");
-                var newOrChangedCandidates = candidateDocuments.Where(c => c.Status != Models.Data.Base.DocumentStatus.Deleted)
+                var newOrChangedCandidates = candidateDocuments.Where(c => c.Status != DocumentStatus.Deleted)
                     .ToList();
                 log.LogInformationEx($"{newOrChangedCandidates.Count} new or changed {collectionName}");
                 if (newOrChangedCandidates.Count > 0)
@@ -89,6 +95,8 @@ namespace AzureUpskill.Functions.Events.OnCandidateIndexModified
                     var batch = IndexBatch.MergeOrUpload(indexesList);
                     var indexResult = await searchClientIndex.Documents.IndexAsync(batch);
                     log.LogInformationEx($"New or changed {collectionName} indexed");
+
+                    await EnqueueIndexingResultsAsync(candidateDocuments, indexResult, outputQueueMessages, log);
                 }
                 log.LogInformationEx($"Indexing {collectionName} finished successfully");
             }
@@ -104,6 +112,35 @@ namespace AzureUpskill.Functions.Events.OnCandidateIndexModified
             {
                 log.LogErrorEx(cloudException, "Indexing failed");
             }
+        }
+
+        private async Task EnqueueIndexingResultsAsync(
+            IEnumerable<Candidate> candidatesProcessed,
+            DocumentIndexResult indexResult,
+            IAsyncCollector<string> oututQueueMessages,
+            ILogger log)
+        {
+            log.LogInformationEx($"Post new candidates to queue");
+
+            var successfullIndexes = candidatesProcessed.AsQueryable()
+                .Where(cp => cp.IsNewOrMoved())
+                .Join(
+                indexResult.Results.Where(ir => ir.Succeeded),
+                cp => cp.Id,
+                ir => ir.Key,
+                (ci, ir) => ci)
+                    .ToList();
+
+            log.LogInformationEx($"Found {successfullIndexes.Count} candidate indexes to enqueue");
+            foreach(var successfullIndex in successfullIndexes)
+            {
+                var message = this.mapper.Map<CandidateIndexedQueueItem>(successfullIndex);
+                var messageJson = JsonConvert.SerializeObject(message);
+                await oututQueueMessages.AddAsync(messageJson);
+            }
+
+            await oututQueueMessages.FlushAsync();
+            log.LogInformationEx($"New candidates documents posted to queue");
         }
     }
 }

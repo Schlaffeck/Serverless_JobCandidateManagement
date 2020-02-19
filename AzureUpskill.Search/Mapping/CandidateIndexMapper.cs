@@ -20,7 +20,8 @@ namespace AzureUpskill.Search.Mapping
 
             CreateMap<Category, CandidateIndex>()
                 .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.Id))
-                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Name));
+                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Name))
+                .ForAllOtherMembers(opt => opt.Ignore());
             CreateMap<CategoryDocument, CandidateIndex>()
                 .IncludeBase<Category, CandidateIndex>();
 
