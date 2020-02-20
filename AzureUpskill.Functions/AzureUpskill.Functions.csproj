@@ -37,9 +37,6 @@
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Commands\SubscribeToCategory\" />
-  </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="start &quot;link&quot; &quot;http://localhost:7071/api/swagger/ui#/&quot;" />
   </Target>

@@ -15,20 +15,18 @@ namespace AzureUpskill.Functions.Commands.InitiateSubscription
         private const string UserIdHeader = "{headers.x-ms-client-principal-id}";
 
         [FunctionName(Name)]
+        [ProducesResponseType(typeof(SignalRConnectionInfo), StatusCodes.Status200OK)]
         public static IActionResult InitiateSubscription(
-            [HttpTrigger(AuthorizationLevel.Anonymous)] HttpRequest request,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "subscriptions/initiate/{userId}")] 
+                HttpRequest request,
             [SignalRConnectionInfo(
                 HubName = Consts.Notifications.CandidateCreatedNotificationHubName,
-                UserId = UserIdHeader,
+                UserId = "{userId}",
                 ConnectionStringSetting = Consts.Notifications.SignalRConnectionStringName)]
                 SignalRConnectionInfo connectionInfo,
+            string userId,
             ILogger log)
         {
-            if(!request.Headers.TryGetValue(UserIdHeader, out StringValues userId))
-            {
-                return new UnauthorizedResult();
-            }
-
             log.LogInformationEx($"User: {string.Join(", ", userId)} initiated subscription");
 
             return new OkObjectResult(connectionInfo);
