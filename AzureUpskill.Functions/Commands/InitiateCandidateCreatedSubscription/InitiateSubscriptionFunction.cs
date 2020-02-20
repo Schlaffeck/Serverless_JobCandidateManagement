@@ -1,4 +1,5 @@
-﻿using AzureUpskill.Helpers;
+﻿using AzureFunctions.Extensions.Swashbuckle.Attribute;
+using AzureUpskill.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -23,6 +24,7 @@ namespace AzureUpskill.Functions.Commands.InitiateSubscription
                 HubName = Consts.Notifications.CandidateCreatedNotificationHubName,
                 UserId = "{userId}",
                 ConnectionStringSetting = Consts.Notifications.SignalRConnectionStringName)]
+            [SwaggerIgnore]
                 SignalRConnectionInfo connectionInfo,
             string userId,
             ILogger log)

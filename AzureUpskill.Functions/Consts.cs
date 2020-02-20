@@ -28,7 +28,7 @@
         {
             public const string SignalRConnectionStringName = "SignalRConnection";
             public const string CandidateCreatedNotificationHubName = "CandidateCreatedHub";
-            public const string OnNewCandidateInCategoryGroupNamePrefix = OnNewCandidateAvailableGroupName + "/category/";
+            public const string OnNewCandidateInCategoryGroupNamePrefix = OnNewCandidateAvailableGroupName + "_category_";
             public const string OnNewCandidateAvailableGroupName = "onNewCandidate";
         }
     }

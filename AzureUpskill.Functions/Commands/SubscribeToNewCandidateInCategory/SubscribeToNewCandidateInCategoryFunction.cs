@@ -25,7 +25,8 @@ namespace AzureUpskill.Functions.Commands.SubscribeToCandidateInCategoryCreated
                 SubscribeToNewCandidateInCategoryInput input,
             [SignalR(
                 HubName = Consts.Notifications.CandidateCreatedNotificationHubName,
-                ConnectionStringSetting = Consts.Notifications.SignalRConnectionStringName)] 
+                ConnectionStringSetting = Consts.Notifications.SignalRConnectionStringName)]
+            [SwaggerIgnore]
                     IAsyncCollector<SignalRGroupAction> signalRGroupActions,
             ILogger log)
         {

@@ -21,10 +21,12 @@ namespace AzureUpskill.Functions.Commands.SubscribeToNewCandidateAvailable
         [ProducesResponseType(StatusCodes.Status202Accepted)]
         public async Task<IActionResult> SubscribeToNewCandidateAvailable(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "subscriptions/onNewCandidateAvailable")]
+            [RequestBodyType(typeof(SubscribeToNewCandidateAvailableInput), "Subscription input")]
                 SubscribeToNewCandidateAvailableInput input,
             [SignalR(
                 HubName = Consts.Notifications.CandidateCreatedNotificationHubName,
                 ConnectionStringSetting = Consts.Notifications.SignalRConnectionStringName)]
+            [SwaggerIgnore]
                     IAsyncCollector<SignalRGroupAction> signalRGroupActions,
             ILogger log)
         {
