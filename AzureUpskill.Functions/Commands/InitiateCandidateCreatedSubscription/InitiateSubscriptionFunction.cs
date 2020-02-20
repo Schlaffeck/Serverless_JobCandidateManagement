@@ -18,7 +18,7 @@ namespace AzureUpskill.Functions.Commands.InitiateSubscription
         [FunctionName(Name)]
         [ProducesResponseType(typeof(SignalRConnectionInfo), StatusCodes.Status200OK)]
         public static IActionResult InitiateSubscription(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "subscriptions/initiate/{userId}")] 
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "subscriptions/initiate/{userId}/negotiate")] 
                 HttpRequest request,
             [SignalRConnectionInfo(
                 HubName = Consts.Notifications.CandidateCreatedNotificationHubName,

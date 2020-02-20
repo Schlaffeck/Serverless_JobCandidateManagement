@@ -22,7 +22,7 @@ namespace AzureUpskill.Functions.Commands.SubscribeToCandidateInCategoryCreated
         public async Task<IActionResult> SubscribeToNewCandidateInCategory(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "subscriptions/onNewCandidateInCategory")]
             [RequestBodyType(typeof(SubscribeToNewCandidateInCategoryInput), "Subscribtion input")]
-                SubscribeToNewCandidateInCategoryInput input,
+                HttpRequest req,
             [SignalR(
                 HubName = Consts.Notifications.CandidateCreatedNotificationHubName,
                 ConnectionStringSetting = Consts.Notifications.SignalRConnectionStringName)]
@@ -30,6 +30,7 @@ namespace AzureUpskill.Functions.Commands.SubscribeToCandidateInCategoryCreated
                     IAsyncCollector<SignalRGroupAction> signalRGroupActions,
             ILogger log)
         {
+            var input = await req.GetJsonBodyAsync<SubscribeToNewCandidateInCategoryInput>();
             foreach (var categoryId in input.CategoryIds)
             {
                 log.LogInformationEx($"User '{input.UserId}' subscribing to new candidate in category '{categoryId}' event");
