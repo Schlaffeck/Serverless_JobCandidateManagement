@@ -4,6 +4,6 @@
     {
         public string UserId { get; set; }
 
-        public string  CategoryId { get; set; }
+        public string[]  CategoryIds { get; set; }
     }
 }

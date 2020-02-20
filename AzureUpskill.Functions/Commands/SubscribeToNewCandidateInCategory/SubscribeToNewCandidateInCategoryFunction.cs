@@ -21,7 +21,7 @@ namespace AzureUpskill.Functions.Commands.SubscribeToCandidateInCategoryCreated
         [ProducesResponseType(StatusCodes.Status202Accepted)]
         public async Task<IActionResult> SubscribeToNewCandidateInCategory(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "subscriptions/onNewCandidateInCategory")]
-            [RequestBodyType(typeof(SubscribeToNewCandidateAvailableInput), "Subscribtion input")]
+            [RequestBodyType(typeof(SubscribeToNewCandidateInCategoryInput), "Subscribtion input")]
                 SubscribeToNewCandidateInCategoryInput input,
             [SignalR(
                 HubName = Consts.Notifications.CandidateCreatedNotificationHubName,
@@ -30,14 +30,17 @@ namespace AzureUpskill.Functions.Commands.SubscribeToCandidateInCategoryCreated
                     IAsyncCollector<SignalRGroupAction> signalRGroupActions,
             ILogger log)
         {
-            log.LogInformationEx($"User '{input.UserId}' subscribing to new candidate in category '{input.CategoryId}' event");
-            await signalRGroupActions.AddAsync(
-                new SignalRGroupAction
-                {
-                    UserId = input.UserId,
-                    GroupName = $"{Consts.Notifications.OnNewCandidateInCategoryGroupNamePrefix}{input.CategoryId}",
-                    Action = GroupAction.Add
-                });
+            foreach (var categoryId in input.CategoryIds)
+            {
+                log.LogInformationEx($"User '{input.UserId}' subscribing to new candidate in category '{categoryId}' event");
+                await signalRGroupActions.AddAsync(
+                    new SignalRGroupAction
+                    {
+                        UserId = input.UserId,
+                        GroupName = $"{Consts.Notifications.OnNewCandidateInCategoryGroupNamePrefix}{categoryId}",
+                        Action = GroupAction.Add
+                    });
+            }
 
             return new AcceptedResult();
         }
