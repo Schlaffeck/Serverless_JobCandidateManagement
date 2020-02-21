@@ -17,5 +17,19 @@
             public const string CandidatesDocumentsBlobContainerName = "candidates-documents";
             public const string CandidatesPicturesBlobContainerName = "candidates-pictures";
         }
+
+        public static class Queues
+        {
+            public const string CandidatesIndexedQueueName = "CandidatesIndexedQueue";
+            public const string ConnectionStringName = "QueuesStorageConnection";
+        }
+
+        public static class Notifications 
+        {
+            public const string SignalRConnectionStringName = "SignalRConnection";
+            public const string CandidateCreatedNotificationHubName = "CandidateCreatedHub";
+            public const string OnNewCandidateInCategoryGroupNamePrefix = OnNewCandidateAvailableGroupName + "_category_";
+            public const string OnNewCandidateAvailableGroupName = "onNewCandidate";
+        }
     }
 }

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "AzureUpskill.Notifications.ConsoleClient": {
+      "commandName": "Project",
+      "commandLineArgs": "-u console_debug -a -c dd906dc6-5a8d-4ad8-a79f-6402743960b4"
+    }
+  }
+}
