@@ -1,15 +1,13 @@
 ﻿using AutoMapper;
 using AzureUpskill.Models.Data.Mapping;
-using AzureFunctions.Extensions.Swashbuckle;
 using System.Reflection;
+using AzureFunctions.Extensions.Swashbuckle;
 using Microsoft.Azure.WebJobs.Hosting;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using AzureUpskill.Search.Mapping;
 using AzureUpskill.Search.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Formatters.Json.Internal;
 using Microsoft.Extensions.Configuration;
 using AzureUpskill.Functions.Services.Search;
 using Microsoft.Extensions.Options;
@@ -22,7 +20,7 @@ namespace AzureUpskill.Functions
         public void Configure(IWebJobsBuilder builder)
         {
             // added to fix deserializing json collections in body
-            builder.Services.AddTransient<IConfigureOptions<MvcOptions>, MvcJsonMvcOptionsSetup>();
+            //builder.Services.AddTransient<IConfigureOptions<MvcOptions>, MvcJsonMvcOptionsSetup>();
             //Register the extension
             builder.AddSwashBuckle(Assembly.GetExecutingAssembly());
             builder.Services.AddAutoMapper(new[] {
