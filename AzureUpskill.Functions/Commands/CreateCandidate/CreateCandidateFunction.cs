@@ -39,13 +39,13 @@ namespace AzureUpskill.Functions.Commands.CreateCandidate
             [CosmosDB(
                 databaseName: Consts.CosmosDb.DbName,
                 collectionName: Consts.CosmosDb.CandidatesContainerName,
-                ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName), SwaggerIgnore] IAsyncCollector<Candidate> candidates,
+                ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName), SwaggerIgnore] IAsyncCollector<CandidateDocument> candidates,
             [CosmosDB(
                 databaseName: Consts.CosmosDb.DbName,
                 collectionName: Consts.CosmosDb.CategoriesContainerName,
                 PartitionKey = "{categoryId}",
                 Id = "{categoryId}",
-                ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName), SwaggerIgnore] Category category,
+                ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName), SwaggerIgnore] CategoryDocument category,
             [CosmosDB(
                 databaseName: Consts.CosmosDb.DbName,
                 collectionName: Consts.CosmosDb.CategoriesContainerName,
@@ -68,7 +68,7 @@ namespace AzureUpskill.Functions.Commands.CreateCandidate
                 return createCandidateInput.ToBadRequest();
             }
 
-            var candidate = _mapper.Map<Candidate>(createCandidateInput.Value);
+            var candidate = _mapper.Map<CandidateDocument>(createCandidateInput.Value);
             _mapper.Map(category, candidate);
 
             await candidates.AddAsync(candidate);
