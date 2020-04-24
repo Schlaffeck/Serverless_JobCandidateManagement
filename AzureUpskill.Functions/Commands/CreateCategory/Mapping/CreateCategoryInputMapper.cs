@@ -11,7 +11,7 @@ namespace AzureUpskill.Functions.Commands.CreateCategory.Mapping
     {
         public CreateCategoryInputMapper()
         {
-            CreateMap<CreateCategoryInput, Category>()
+            CreateMap<CreateCategoryInput, CategoryDocument>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid()))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.Now))
                 .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())

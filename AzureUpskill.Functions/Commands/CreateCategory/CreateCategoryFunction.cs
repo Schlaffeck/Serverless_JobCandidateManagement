@@ -39,7 +39,7 @@ namespace AzureUpskill.Functions.Commands.CreateCategory
                 databaseName: Consts.CosmosDb.DbName,
                 collectionName: Consts.CosmosDb.CategoriesContainerName,
                 ConnectionStringSetting = Consts.CosmosDb.ConnectionStringName,
-                CreateIfNotExists = true), SwaggerIgnore] IAsyncCollector<Category> categories,
+                CreateIfNotExists = true), SwaggerIgnore] IAsyncCollector<CategoryDocument> categories,
             ILogger log)
         {
             var validated = req.Validate<CreateCategoryInput, CreateCategoryInputValidator>();
@@ -48,7 +48,7 @@ namespace AzureUpskill.Functions.Commands.CreateCategory
                 return validated.ToBadRequest();
             }
 
-            var newCategory = _mapper.Map<Category>(validated.Value);
+            var newCategory = _mapper.Map<CategoryDocument>(validated.Value);
 
             await categories.AddAsync(newCategory);
 

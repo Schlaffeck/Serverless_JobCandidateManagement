@@ -10,12 +10,12 @@ namespace AzureUpskill.Functions.Commands.CreateCandidate.Mapping
     {
         public CreateCandidateInputMapper()
         {
-            CreateMap<CreateCandidateInput, Candidate>()
+            CreateMap<CreateCandidateInput, CandidateDocument>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid()))
                 .ForMember(dest => dest.EmploymentFullMonths, opt => opt.MapFrom(src => EmploymentCalculator.CalculateEmploymentPeriodFullMonths(src.EmploymentHistory)))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTimeOffset.Now));
 
-            CreateMap<Category, Candidate>()
+            CreateMap<Category, CandidateDocument>()
                 .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(dest => dest.CategoryId))
                 .ForAllOtherMembers(opt => opt.Ignore());
         }
